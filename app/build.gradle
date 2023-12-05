@@ -48,10 +48,15 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(project.property("keystoreFile"))
-            storePassword project.property("keystorePassword")
-            keyAlias project.property("keyAlias")
-            keyPassword project.property("keyPassword")
+            //加载资源
+            Properties properties = new Properties()
+            InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
+            properties.load(inputStream)
+
+            storeFile file(properties.getProperty("keystoreFile"))
+            storePassword properties.getProperty("keystorePassword")
+            keyAlias properties.getProperty("keyAlias")
+            keyPassword properties.getProperty("keyPassword")
         }
     }
 
