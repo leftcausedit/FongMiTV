@@ -235,6 +235,10 @@ public class Vod implements Parcelable {
         return getVodTag().equals("manga");
     }
 
+    public boolean isPhoto() {
+        return getVodTag().equals("photo");
+    }
+
     public Style getStyle(Style style) {
         return getStyle() != null ? getStyle() : style != null ? style : Style.rect();
     }
