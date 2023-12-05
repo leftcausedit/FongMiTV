@@ -4,11 +4,16 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
-import com.bumptech.glide.Glide;
+import android.graphics.drawable.Drawable;
+
+// import android.widget.ImageView;
+// import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.R; // 引入R类
+import com.fongmi.android.tv.utils.ImgUtil; // 引入 ImgUtil
 import com.github.chrisbanes.photoview.PhotoView; // 引入 PhotoView
 import com.github.chrisbanes.photoview.PhotoViewAttacher;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 
 public class PhotoActivity extends Activity {
 
@@ -31,7 +36,29 @@ public class PhotoActivity extends Activity {
 
         // 使用Glide加载图片
         // Glide.with(this).load(imageUrl).into(imageView);
-        Glide.with(this).load(imageUrl).into(photoView);
+        // Glide.with(this).load(imageUrl).into(photoView);
+
+        // 创建 CustomTarget 对象，处理图片加载回调
+        CustomTarget<Drawable> target = new CustomTarget<Drawable>() {
+            @Override
+            public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
+                // 在这里处理加载成功的图片
+                photoView.setImageDrawable(resource);
+            }
+
+            @Override
+            public void onLoadCleared(Drawable placeholder) {
+                // 在这里处理加载被清除的情况
+            }
+
+            @Override
+            public void onLoadFailed(Drawable errorDrawable) {
+                // 在这里处理加载失败的情况
+                photoView.setImageResource(R.drawable.ic_photo_empty);
+            }
+        };
+        // 使用 ImgUtil 加载图片
+        ImgUtil.load(imageUrl, R.drawable.ic_photo_empty, target);
 
         // 设置点击图片关闭Activity
         // imageView.setOnClickListener(new View.OnClickListener() {
