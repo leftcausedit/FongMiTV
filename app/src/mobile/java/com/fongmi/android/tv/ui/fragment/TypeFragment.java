@@ -25,6 +25,7 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.activity.DetailActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
+import com.fongmi.android.tv.ui.activity.FolderActivity;
 import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
@@ -214,8 +215,9 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     @Override
     public void onItemClick(Vod item) {
         if (item.isFolder()) {
-            mPages.add(Page.get(item, findPosition()));
-            getVideo(item.getVodId(), "1");
+            //mPages.add(Page.get(item, findPosition()));
+            //getVideo(item.getVodId(), "1");
+            FolderActivity.start(getActivity(), getKey(), Result.folder(item));
         } else {
             if (item.isManga()) DetailActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
             else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), isFolder() ? item.getVodName() : null, false);
