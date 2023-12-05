@@ -7,11 +7,17 @@
     tools:context=".PhotoActivity">
 
     <!-- 在这里放置你的布局元素 -->
-    <ImageView
+    <!-- <ImageView
     android:id="@+id/imageView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scaleType="centerCrop"/>
+    android:scaleType="centerCrop"/> -->
+
+    <!-- 使用 PhotoView 替代 ImageView -->
+    <com.github.chrisbanes.photoview.PhotoView
+        android:id="@+id/photoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 
 </RelativeLayout>

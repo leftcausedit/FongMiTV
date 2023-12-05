@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.R; // 引入R类
+import com.github.chrisbanes.photoview.PhotoView; // 引入 PhotoView
+import com.github.chrisbanes.photoview.PhotoViewAttacher;
 
 public class PhotoActivity extends Activity {
 
@@ -24,17 +26,26 @@ public class PhotoActivity extends Activity {
         setContentView(R.layout.activity_photo);
 
         String imageUrl = getIntent().getStringExtra(EXTRA_IMAGE_URL);
-        ImageView imageView = findViewById(R.id.imageView);
+        // ImageView imageView = findViewById(R.id.imageView);
+        PhotoView photoView = findViewById(R.id.photoView); // 修改为 PhotoView
 
         // 使用Glide加载图片
-        Glide.with(this).load(imageUrl).into(imageView);
+        // Glide.with(this).load(imageUrl).into(imageView);
+        Glide.with(this).load(imageUrl).into(photoView);
 
         // 设置点击图片关闭Activity
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        // imageView.setOnClickListener(new View.OnClickListener() {
+        //     @Override
+        //     public void onClick(View v) {
+        //         finish();
+        //     }
+        // });
+
+        // 设置点击图片关闭Activity（如果需要）
+        // photoView.setOnClickListener(v -> finish());
+
+        // 添加缩放功能
+        PhotoViewAttacher photoAttacher = new PhotoViewAttacher(photoView);
+        photoAttacher.update();
     }
 }
