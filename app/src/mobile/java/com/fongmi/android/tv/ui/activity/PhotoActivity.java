@@ -5,90 +5,147 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.graphics.drawable.Drawable;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 
-// import android.widget.ImageView;
-// import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.R; // 引入R类
 import com.fongmi.android.tv.utils.ImgUtil; // 引入 ImgUtil
-// import com.github.chrisbanes.photoview.PhotoView; // 引入 PhotoView
-// import com.github.chrisbanes.photoview.PhotoViewAttacher;
+import com.fongmi.android.tv.utils.Notify; 
+import com.fongmi.android.tv.bean.Vod;
 import com.github.panpf.zoomimage.ZoomImageView;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PhotoActivity extends Activity {
 
-    private static final String EXTRA_IMAGE_URL = "https://cdn-icons-png.flaticon.com/128/1160/1160307.png";
+    private List<Vod> vodList;
+    private Vod currentVod;
+    private int currentIndex;
+    private CustomTarget<Drawable> target;
+    private String imageUrl;
 
-    public static void start(Activity activity, String imageUrl) {
+    private GestureDetector gestureDetector;
+
+    private ZoomImageView zoomImageView;
+
+    public static void start(Activity activity, List<Vod> vodList, int currentIndex) {
         Intent intent = new Intent(activity, PhotoActivity.class);
-        intent.putExtra(EXTRA_IMAGE_URL, imageUrl);
+        intent.putParcelableArrayListExtra("vodList", new ArrayList<>(vodList));
+        intent.putExtra("currentIndex", currentIndex);
         activity.startActivity(intent);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // setContentView(R.layout.activity_photo);
 
-        String imageUrl = getIntent().getStringExtra(EXTRA_IMAGE_URL);
-        // ImageView imageView = findViewById(R.id.imageView);
-        // PhotoView photoView = findViewById(R.id.photoView); // 修改为 PhotoView
-        ZoomImageView zoomImageView = new ZoomImageView(this);
-        zoomImageView.setImageResource(R.drawable.ic_photo_empty);
-        zoomImageView.setScrollBar(null);
+        vodList = getIntent().getParcelableArrayListExtra("vodList");
+        currentIndex = getIntent().getIntExtra("currentIndex",0);
+        currentVod = vodList.get(currentIndex);
 
+        zoomImageView = new ZoomImageView(this);
 
-
-
-        // 使用Glide加载图片
-        // Glide.with(this).load(imageUrl).into(imageView);
-        // Glide.with(this).load(imageUrl).into(photoView);
-
-        // 创建 CustomTarget 对象，处理图片加载回调
-        CustomTarget<Drawable> target = new CustomTarget<Drawable>() {
-            @Override
-            public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
-                // 在这里处理加载成功的图片
-                // photoView.setImageDrawable(resource);
-                zoomImageView.setImageDrawable(resource);
-                // zoomImageView.setImageSource(ImageSource.fromResource(resource));
-            }
-
-            @Override
-            public void onLoadCleared(Drawable placeholder) {
-                // 在这里处理加载被清除的情况
-            }
-
-            @Override
-            public void onLoadFailed(Drawable errorDrawable) {
-                // 在这里处理加载失败的情况
-                // photoView.setImageResource(R.drawable.ic_photo_empty);
-                zoomImageView.setImageResource(R.drawable.ic_photo_empty);
-            }
-        };
-        // 使用 ImgUtil 加载图片
-        ImgUtil.load(imageUrl, R.drawable.ic_photo_empty, target);
-
-
-
-
-        // 设置点击图片关闭Activity
-        // imageView.setOnClickListener(new View.OnClickListener() {
+        // gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
         //     @Override
-        //     public void onClick(View v) {
-        //         finish();
+        //     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        //         float distanceX = e2.getX() - e1.getX();
+        //         if (distanceX > 0) {
+        //             // 右滑
+        //             showNextImage();
+        //         } else {
+        //             // 左滑
+        //             showPreviousImage();
+        //         }
+        //         return true;
         //     }
         // });
 
-        // 设置点击图片关闭Activity（如果需要）
-        // photoView.setOnClickListener(v -> finish());
-
-        // 添加缩放功能
-        // PhotoViewAttacher photoAttacher = new PhotoViewAttacher(photoView);
-        // photoAttacher.update();
-
+        // 创建 CustomTarget 对象，处理图片加载回调
+        target = new CustomTarget<Drawable>() {
+            @Override
+            public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
+                zoomImageView.setImageDrawable(resource);
+            }
+            @Override
+            public void onLoadCleared(Drawable placeholder) {}
+            @Override
+            public void onLoadFailed(Drawable errorDrawable) {
+                zoomImageView.setImageResource(R.drawable.ic_photo_empty);
+            }
+        };
 
         setContentView(zoomImageView);
+        zoomImageView.setScrollBar(null);
+
+        loadImage();
+
+        zoomImageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return gestureDetector.onTouchEvent(event);
+            }
+        });     
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 继续手势监听
+        gestureDetector = new GestureDetector(this, new MyGestureListener());
+    }
+
+    private void loadImage() {
+        imageUrl = currentVod.getVodPic();
+        ImgUtil.load(imageUrl, R.drawable.ic_photo_empty, target);
+    }
+
+    private class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+        private static final int SWIPE_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            float diffX = e2.getX() - e1.getX();
+            float diffY = e2.getY() - e1.getY();
+
+            if (Math.abs(diffX) > Math.abs(diffY) &&
+                    Math.abs(diffX) > SWIPE_THRESHOLD &&
+                    Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                // 左右滑动
+                if (diffX < 0) {
+                    // 向右滑动
+                    loadNextImage();
+                } else {
+                    // 向左滑动
+                    loadPreviousImage();
+                }
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    private void loadNextImage() {
+        if (currentIndex < vodList.size() - 1) {
+            currentIndex++;
+            currentVod = vodList.get(currentIndex);
+            loadImage();
+        } else {
+            Notify.show("没有下一张图片了哟~");
+        }
+    }
+
+    private void loadPreviousImage() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            currentVod = vodList.get(currentIndex);
+            loadImage();
+        } else {
+            Notify.show("没有上一张图片了哟~");
+        }
     }
 }

@@ -56,6 +56,14 @@ public class VodAdapter extends RecyclerView.Adapter<BaseVodHolder> {
         notifyDataSetChanged();
     }
 
+    public List<Vod> getList() {
+        return mItems;
+    }
+
+    public int getItemPosition(Vod item) {
+        return mItems.indexOf(item);
+    }
+
     @Override
     public int getItemCount() {
         return mItems.size();
