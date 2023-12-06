@@ -10,8 +10,9 @@ import android.graphics.drawable.Drawable;
 // import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.R; // 引入R类
 import com.fongmi.android.tv.utils.ImgUtil; // 引入 ImgUtil
-import com.github.chrisbanes.photoview.PhotoView; // 引入 PhotoView
-import com.github.chrisbanes.photoview.PhotoViewAttacher;
+// import com.github.chrisbanes.photoview.PhotoView; // 引入 PhotoView
+// import com.github.chrisbanes.photoview.PhotoViewAttacher;
+import com.github.panpf.zoomimage.ZoomImageView;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
@@ -28,11 +29,17 @@ public class PhotoActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_photo);
+        // setContentView(R.layout.activity_photo);
 
         String imageUrl = getIntent().getStringExtra(EXTRA_IMAGE_URL);
         // ImageView imageView = findViewById(R.id.imageView);
-        PhotoView photoView = findViewById(R.id.photoView); // 修改为 PhotoView
+        // PhotoView photoView = findViewById(R.id.photoView); // 修改为 PhotoView
+        ZoomImageView zoomImageView = new ZoomImageView(this);
+        zoomImageView.setImageResource(R.drawable.ic_photo_empty);
+        zoomImageView.setScrollBar(null);
+
+
+
 
         // 使用Glide加载图片
         // Glide.with(this).load(imageUrl).into(imageView);
@@ -43,7 +50,9 @@ public class PhotoActivity extends Activity {
             @Override
             public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
                 // 在这里处理加载成功的图片
-                photoView.setImageDrawable(resource);
+                // photoView.setImageDrawable(resource);
+                zoomImageView.setImageDrawable(resource);
+                // zoomImageView.setImageSource(ImageSource.fromResource(resource));
             }
 
             @Override
@@ -54,11 +63,15 @@ public class PhotoActivity extends Activity {
             @Override
             public void onLoadFailed(Drawable errorDrawable) {
                 // 在这里处理加载失败的情况
-                photoView.setImageResource(R.drawable.ic_photo_empty);
+                // photoView.setImageResource(R.drawable.ic_photo_empty);
+                zoomImageView.setImageResource(R.drawable.ic_photo_empty);
             }
         };
         // 使用 ImgUtil 加载图片
         ImgUtil.load(imageUrl, R.drawable.ic_photo_empty, target);
+
+
+
 
         // 设置点击图片关闭Activity
         // imageView.setOnClickListener(new View.OnClickListener() {
@@ -72,7 +85,10 @@ public class PhotoActivity extends Activity {
         // photoView.setOnClickListener(v -> finish());
 
         // 添加缩放功能
-        PhotoViewAttacher photoAttacher = new PhotoViewAttacher(photoView);
-        photoAttacher.update();
+        // PhotoViewAttacher photoAttacher = new PhotoViewAttacher(photoView);
+        // photoAttacher.update();
+
+
+        setContentView(zoomImageView);
     }
 }
