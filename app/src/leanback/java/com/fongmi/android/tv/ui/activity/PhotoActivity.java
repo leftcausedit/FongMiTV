@@ -80,13 +80,12 @@ public class PhotoActivity extends Activity {
         times = times + (float) 0.5;
         imageView.setScaleX(originalScaleX * times);
         imageView.setScaleY(originalScaleY * times);
-        Notify.show("Image Clicked!");
     }
 
     private boolean onImageLongClick() {
+        times = 1;
         imageView.setScaleX(originalScaleX);
         imageView.setScaleY(originalScaleY);
-        Notify.show("Image Loneclicked!");
         return true;
     }
 

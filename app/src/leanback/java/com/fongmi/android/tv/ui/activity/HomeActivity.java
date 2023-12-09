@@ -115,6 +115,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 mBinding.toolbar.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
                 if (mPresenter.isDelete()) setHistoryDelete(false);
                 if (mPresenter.isSearch()) setHistorySearch(false);
+                if (mPresenter.isClear()) setHistoryClear(false);
             }
         });
     }
@@ -267,10 +268,17 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mHistoryAdapter.notifyArrayItemRangeChanged(0, mHistoryAdapter.size());
     }
 
+    private void setHistoryClear(boolean clear) {
+        mPresenter.setClear(clear);
+        mHistoryAdapter.notifyArrayItemRangeChanged(0, mHistoryAdapter.size());
+    }
+
     private void clearHistory() {
         mAdapter.removeItems(getHistoryIndex(), 1);
         History.delete(ApiConfig.getCid());
         mPresenter.setDelete(false);
+        mPresenter.setClear(false);
+        mPresenter.setSearch(false);
         mHistoryAdapter.clear();
     }
 
@@ -355,6 +363,13 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mPresenter.setDelete(false);
     }
 
+    public void onItemClear(History item) {
+        mHistoryAdapter.remove(item.delete());
+        if (mHistoryAdapter.size() > 0) return;
+        mAdapter.removeItems(getHistoryIndex(), 1);
+        mPresenter.setClear(false);
+    }
+
     @Override
     public void onItemSearch(History item) {
         CollectActivity.start(this, item.getVodName());
@@ -362,23 +377,43 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     public void onHistoryFirstLeftPress(History item) {
         if (mHistoryAdapter.indexOf(item) == 0) {
-            if (mPresenter.isSearch()) setHistorySearch(false);
+            mPresenter.setSearch(false);
+            mPresenter.setDelete(false);
+            if (mPresenter.isClear()) {
+                setHistoryClear(false);
+            }
             else {
-                setHistoryDelete(false);
-                setHistorySearch(true);
+                setHistoryClear(true);
             }
         }
     }
 
     @Override
     public boolean onLongClick() {
-        if (mPresenter.isDelete()) clearHistory();
-        else {
-            setHistorySearch(false);
+        if (mPresenter.isDelete()) {
+            mPresenter.setDelete(false);
+            mPresenter.setClear(false);
+            setHistorySearch(true);
+        }
+        else if (mPresenter.isSearch()) {
+            mPresenter.setSearch(false);
+            mPresenter.setDelete(false);
+            setHistoryClear(false);
+        } else if (mPresenter.isClear()) {
+            clearHistory();
+        } else {
+            mPresenter.setClear(false);
+            mPresenter.setSearch(false);
             setHistoryDelete(true);
         }
         return true;
     }
+
+//    @Override
+//    public boolean onClearLongClick() {
+//        if (mPresenter.isClear()) clearHistory();
+//        return true;
+//    }
 
     @Override
     public void showDialog() {
@@ -484,6 +519,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             setHistoryDelete(false);
         } else if (mPresenter.isSearch()) {
             setHistorySearch(false);
+        } else if (mPresenter.isClear()) {
+            setHistoryClear(false);
         } else if (mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
         } else if (!confirm) {

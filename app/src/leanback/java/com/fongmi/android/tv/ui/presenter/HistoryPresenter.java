@@ -22,6 +22,7 @@ public class HistoryPresenter extends Presenter {
     private int width, height;
     private boolean delete;
     private boolean search;
+    private boolean clear;
 
     public HistoryPresenter(OnClickListener listener, OnKeyListener keyListener) {
         this.mListener = listener;
@@ -36,6 +37,10 @@ public class HistoryPresenter extends Presenter {
         void onItemDelete(History item);
 
         void onItemSearch(History item);
+
+        void onItemClear(History item);
+
+//        boolean onClearLongClick();
 
         boolean onLongClick();
     }
@@ -60,6 +65,13 @@ public class HistoryPresenter extends Presenter {
         this.search = search;
     }
 
+    public boolean isClear() {
+        return clear;
+    }
+
+    public void setClear(boolean clear) {
+        this.clear = clear;
+    }
     private void setLayoutSize() {
         int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
         int base = ResUtil.getScreenWidth() - space;
@@ -86,15 +98,22 @@ public class HistoryPresenter extends Presenter {
         holder.binding.remark.setVisibility(delete || search ? View.GONE : View.VISIBLE);
         holder.binding.delete.setVisibility(!delete || search ? View.GONE : View.VISIBLE);
         holder.binding.search.setVisibility(!search || delete ? View.GONE : View.VISIBLE);
+        holder.binding.clear.setVisibility(!clear ? View.GONE : View.VISIBLE);
         holder.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
         ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
     }
 
     private void setClickListener(View root, History item) {
+//        root.setOnLongClickListener(view -> {
+//            if (isClear()) mListener.onClearLongClick();
+//            else mListener.onLongClick();
+//            return false;
+//        });
         root.setOnLongClickListener(view -> mListener.onLongClick());
         root.setOnClickListener(view -> {
             if (isDelete()) mListener.onItemDelete(item);
             else if (isSearch()) mListener.onItemSearch(item);
+            else if (isClear()) mListener.onItemClear(item);
             else mListener.onItemClick(item);
         });
         root.setOnKeyListener((view, keyCode, event) -> {
