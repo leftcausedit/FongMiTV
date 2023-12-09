@@ -32,6 +32,7 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.activity.VodActivity;
+import com.fongmi.android.tv.ui.activity.PhotoActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
@@ -59,6 +60,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     private List<Page> mPages;
     private boolean mOpen;
     private Page mPage;
+    private List<Vod> vodList = new ArrayList<>();
 
     public static VodFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
         Bundle args = new Bundle();
@@ -102,7 +104,8 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     }
 
     private Style getStyle() {
-        return isFolder() ? Style.list() : getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
+        // return isFolder() ? Style.list() : getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
+        return getSite().getStyle(mPages.isEmpty() ? getArguments().getParcelable("style") : getLastPage().getStyle());
     }
 
     @Override
@@ -183,6 +186,8 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
 
     private void addVideo(Result result) {
         Style style = result.getStyle(getStyle());
+        vodList.addAll(result.getList());
+
         if (style.isList()) mAdapter.addAll(mAdapter.size(), result.getList());
         else addGrid(result.getList(), style);
     }
@@ -278,6 +283,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
             VodActivity.start(getActivity(), getKey(), Result.folder(item));
         } else {
             if (!isFolder()) VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+            else if (item.isPhoto()) PhotoActivity.start(getActivity(), vodList, vodList.indexOf(item));
             else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodName());
         }
     }

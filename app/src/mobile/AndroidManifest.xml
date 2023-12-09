@@ -6,7 +6,6 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -123,7 +122,7 @@
 
         <activity
             android:name=".ui.activity.PhotoActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="fullUser" />
 
         <service

@@ -63,6 +63,8 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
+import java.util.ArrayList;
+
 
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
 
@@ -316,7 +318,16 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Vod item) {
-        VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
+        // VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
+        if (item.isFolder()) {
+            VodActivity.start(this, Result.folder(item));
+        } else if (item.isPhoto()) {
+            List<Vod> vodList = new ArrayList<Vod>();
+            vodList.add(item);
+            PhotoActivity.start(this, vodList, vodList.indexOf(item));
+        } else {
+            VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
+        }
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.fongmi.android.tv.utils.ImgUtil; // 引入 ImgUtil
 import com.fongmi.android.tv.utils.Notify; 
 import com.fongmi.android.tv.bean.Vod;
 import com.github.panpf.zoomimage.ZoomImageView;
+import com.github.panpf.zoomimage.zoom.Edge;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
@@ -43,11 +44,10 @@ public class PhotoActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         vodList = getIntent().getParcelableArrayListExtra("vodList");
-        currentIndex = getIntent().getIntExtra("currentIndex",0);
+        currentIndex = getIntent().getIntExtra("currentIndex", 0);
         currentVod = vodList.get(currentIndex);
 
         zoomImageView = new ZoomImageView(this);
-
         // gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
         //     @Override
         //     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -110,15 +110,23 @@ public class PhotoActivity extends Activity {
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             float diffX = e2.getX() - e1.getX();
             float diffY = e2.getY() - e1.getY();
+            boolean userZoom = false;
+            if (zoomImageView.getZoomable().getUserTransformState().getValue().getScaleX() == 1.0f &&
+                    zoomImageView.getZoomable().getUserTransformState().getValue().getScaleY() == 1.0f) {
+                userZoom = false;    
+            } else {
+                userZoom = true;
+            }
 
             if (Math.abs(diffX) > Math.abs(diffY) &&
                     Math.abs(diffX) > SWIPE_THRESHOLD &&
                     Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+                Edge edge = zoomImageView.getZoomable().getScrollEdgeState().getValue().getHorizontal();
                 // 左右滑动
-                if (diffX < 0) {
+                if (diffX < 0 && (edge == Edge.END || userZoom == false)) {
                     // 向右滑动
                     loadNextImage();
-                } else {
+                } else if (diffX > 0 && (edge == Edge.START || userZoom == false)){
                     // 向左滑动
                     loadPreviousImage();
                 }
