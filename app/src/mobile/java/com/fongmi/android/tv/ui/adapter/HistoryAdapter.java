@@ -35,7 +35,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
 
         void onItemDelete(History item);
 
-        boolean onLongClick();
+        boolean onLongClick(History item);
     }
 
     public void setSize(int[] size) {
@@ -100,7 +100,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
 
     private void setClickListener(View root, History item) {
-        root.setOnLongClickListener(view -> mListener.onLongClick());
+        root.setOnLongClickListener(view -> mListener.onLongClick(item));
         root.setOnClickListener(view -> {
             if (isDelete()) mListener.onItemDelete(item);
             else mListener.onItemClick(item);

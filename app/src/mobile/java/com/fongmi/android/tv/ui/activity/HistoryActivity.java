@@ -93,8 +93,10 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     @Override
-    public boolean onLongClick() {
-        mAdapter.setDelete(!mAdapter.isDelete());
+    public boolean onLongClick(History item) {
+//        mAdapter.setDelete(!mAdapter.isDelete());
+        if (mAdapter.isDelete()) mAdapter.setDelete(!mAdapter.isDelete());
+        else CollectActivity.start(getActivity(), item.getVodName());
         return true;
     }
 
