@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.presenter;
 
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +18,14 @@ import com.fongmi.android.tv.utils.ResUtil;
 public class HistoryPresenter extends Presenter {
 
     private final OnClickListener mListener;
+    private final OnKeyListener mKeyListener;
     private int width, height;
     private boolean delete;
+    private boolean search;
 
-    public HistoryPresenter(OnClickListener listener) {
+    public HistoryPresenter(OnClickListener listener, OnKeyListener keyListener) {
         this.mListener = listener;
+        this.mKeyListener = keyListener;
         setLayoutSize();
     }
 
@@ -31,7 +35,13 @@ public class HistoryPresenter extends Presenter {
 
         void onItemDelete(History item);
 
+        void onItemSearch(History item);
+
         boolean onLongClick();
+    }
+
+    public interface OnKeyListener {
+        void onHistoryFirstLeftPress(History item);
     }
 
     public boolean isDelete() {
@@ -40,6 +50,14 @@ public class HistoryPresenter extends Presenter {
 
     public void setDelete(boolean delete) {
         this.delete = delete;
+    }
+
+    public boolean isSearch() {
+        return search;
+    }
+
+    public void setSearch(boolean search) {
+        this.search = search;
     }
 
     private void setLayoutSize() {
@@ -65,8 +83,9 @@ public class HistoryPresenter extends Presenter {
         holder.binding.name.setText(item.getVodName());
         holder.binding.site.setText(item.getSiteName());
         holder.binding.site.setVisibility(item.getSiteVisible());
-        holder.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
-        holder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
+        holder.binding.remark.setVisibility(delete || search ? View.GONE : View.VISIBLE);
+        holder.binding.delete.setVisibility(!delete || search ? View.GONE : View.VISIBLE);
+        holder.binding.search.setVisibility(!search || delete ? View.GONE : View.VISIBLE);
         holder.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
         ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
     }
@@ -75,7 +94,15 @@ public class HistoryPresenter extends Presenter {
         root.setOnLongClickListener(view -> mListener.onLongClick());
         root.setOnClickListener(view -> {
             if (isDelete()) mListener.onItemDelete(item);
+            else if (isSearch()) mListener.onItemSearch(item);
             else mListener.onItemClick(item);
+        });
+        root.setOnKeyListener((view, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                    event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT &&
+                    event.isLongPress() == true)
+                mKeyListener.onHistoryFirstLeftPress(item);
+            return false;
         });
     }
 

@@ -66,7 +66,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 
-public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
+public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener, HistoryPresenter.OnKeyListener {
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
@@ -114,6 +114,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
                 mBinding.toolbar.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
                 if (mPresenter.isDelete()) setHistoryDelete(false);
+                if (mPresenter.isSearch()) setHistorySearch(false);
             }
         });
     }
@@ -153,7 +154,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mAdapter.add(getFuncRow());
         mAdapter.add(R.string.home_history);
         mAdapter.add(R.string.home_recommend);
-        mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
+        mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this, this));
     }
 
     private void initConfig() {
@@ -250,7 +251,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         int historyIndex = getHistoryIndex();
         int recommendIndex = getRecommendIndex();
         boolean exist = recommendIndex - historyIndex == 2;
-        if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
+        if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this, this));
         if ((items.isEmpty() && exist) || (renew && exist)) mAdapter.removeItems(historyIndex, 1);
         if ((items.size() > 0 && !exist) || (renew && exist)) mAdapter.add(historyIndex, new ListRow(mHistoryAdapter));
         mHistoryAdapter.setItems(items, null);
@@ -258,6 +259,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setHistoryDelete(boolean delete) {
         mPresenter.setDelete(delete);
+        mHistoryAdapter.notifyArrayItemRangeChanged(0, mHistoryAdapter.size());
+    }
+
+    private void setHistorySearch(boolean search) {
+        mPresenter.setSearch(search);
         mHistoryAdapter.notifyArrayItemRangeChanged(0, mHistoryAdapter.size());
     }
 
@@ -350,9 +356,27 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     @Override
+    public void onItemSearch(History item) {
+        CollectActivity.start(this, item.getVodName());
+    }
+
+    public void onHistoryFirstLeftPress(History item) {
+        if (mHistoryAdapter.indexOf(item) == 0) {
+            if (mPresenter.isSearch()) setHistorySearch(false);
+            else {
+                setHistoryDelete(false);
+                setHistorySearch(true);
+            }
+        }
+    }
+
+    @Override
     public boolean onLongClick() {
         if (mPresenter.isDelete()) clearHistory();
-        else setHistoryDelete(true);
+        else {
+            setHistorySearch(false);
+            setHistoryDelete(true);
+        }
         return true;
     }
 
@@ -458,6 +482,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             mBinding.progressLayout.showContent();
         } else if (mPresenter.isDelete()) {
             setHistoryDelete(false);
+        } else if (mPresenter.isSearch()) {
+            setHistorySearch(false);
         } else if (mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
         } else if (!confirm) {
