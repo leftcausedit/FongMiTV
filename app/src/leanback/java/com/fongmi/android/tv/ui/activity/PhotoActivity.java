@@ -27,6 +27,10 @@ public class PhotoActivity extends Activity {
 
     private ImageView imageView;
 
+    private float originalScaleX;
+    private float originalScaleY;
+    private float times;
+
     public static void start(Activity activity, List<Vod> vodList, int currentIndex) {
         Intent intent = new Intent(activity, PhotoActivity.class);
         intent.putParcelableArrayListExtra("vodList", new ArrayList<>(vodList));
@@ -64,7 +68,26 @@ public class PhotoActivity extends Activity {
 
         setContentView(imageView);
 
+        imageView.setOnClickListener(v -> onImageClick());
+        imageView.setOnLongClickListener(v -> onImageLongClick());
+        originalScaleX = imageView.getScaleX();
+        originalScaleY = imageView.getScaleY();
+        times = 1;
         loadImage();
+    }
+
+    private void onImageClick() {
+        times = times + (float) 0.5;
+        imageView.setScaleX(originalScaleX * times);
+        imageView.setScaleY(originalScaleY * times);
+        Notify.show("Image Clicked!");
+    }
+
+    private boolean onImageLongClick() {
+        imageView.setScaleX(originalScaleX);
+        imageView.setScaleY(originalScaleY);
+        Notify.show("Image Loneclicked!");
+        return true;
     }
 
     @Override
@@ -77,10 +100,25 @@ public class PhotoActivity extends Activity {
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 loadNextImage();
                 return true;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                moveImageUp();
+                return true;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                moveImageDown();
+                return true;
             default:
                 return super.onKeyDown(keyCode, event);
         }
     }
+
+    private void moveImageUp() {
+        imageView.setTranslationY(imageView.getTranslationY() + 100.0f);
+    }
+
+    private void moveImageDown() {
+        imageView.setTranslationY(imageView.getTranslationY() - 100.0f);
+    }
+
 
     private void loadImage() {
         imageUrl = currentVod.getVodPic();
