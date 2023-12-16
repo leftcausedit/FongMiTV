@@ -77,6 +77,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initView() {
+        mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(ApiConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
@@ -241,7 +242,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     }
 
     private void onLiveHome(View view) {
-        LiveDialog.create(this).show();
+        LiveDialog.create(this).action().show();
     }
 
     private void onVodHistory(View view) {

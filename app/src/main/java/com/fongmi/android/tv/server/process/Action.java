@@ -30,7 +30,7 @@ public class Action implements Process {
 
     @Override
     public boolean isRequest(NanoHTTPD.IHTTPSession session, String path) {
-        return session.getMethod() == NanoHTTPD.Method.POST && path.equals("/action");
+        return path.equals("/action");
     }
 
     @Override
@@ -39,37 +39,75 @@ public class Action implements Process {
         switch (Objects.requireNonNullElse(params.get("do"), "")) {
             case "search":
                 onSearch(params);
-                break;
+                return Nano.success();
             case "push":
                 onPush(params);
-                break;
-            case "api":
-                onApi(params);
-                break;
+                return Nano.success();
+            case "setting":
+                onSetting(params);
+                return Nano.success();
+            case "file":
+                onFile(params);
+                return Nano.success();
+            case "refresh":
+                onRefresh(params);
+                return Nano.success();
             case "cast":
                 onCast(params);
-                break;
+                return Nano.success();
             case "sync":
                 onSync(params);
-                break;
+                return Nano.success();
+            default:
+                return Nano.error(null);
         }
-        return Nano.success();
     }
 
     private void onSearch(Map<String, String> params) {
-        String word = Objects.requireNonNullElse(params.get("word"), "");
-        if (word.length() > 0) ServerEvent.search(word);
+        String word = params.get("word");
+        if (TextUtils.isEmpty(word)) return;
+        ServerEvent.search(word);
     }
 
     private void onPush(Map<String, String> params) {
-        String url = Objects.requireNonNullElse(params.get("url"), "");
-        if (url.length() > 0) ServerEvent.push(url);
+        String url = params.get("url");
+        if (TextUtils.isEmpty(url)) return;
+        ServerEvent.push(url);
     }
 
-    private void onApi(Map<String, String> params) {
-        String url = Objects.requireNonNullElse(params.get("url"), "");
-        if (url.endsWith(".apk")) FileUtil.openFile(Path.local(url));
-        else if (url.length() > 0) ServerEvent.api(url);
+    private void onSetting(Map<String, String> params) {
+        String text = params.get("text");
+        if (TextUtils.isEmpty(text)) return;
+        ServerEvent.setting(text);
+    }
+
+    private void onFile(Map<String, String> params) {
+        String path = params.get("path");
+        if (TextUtils.isEmpty(path)) return;
+        if (path.endsWith(".xml")) RefreshEvent.danmaku(path);
+        else if (path.endsWith(".apk")) FileUtil.openFile(Path.local(path));
+        else if (path.endsWith(".srt") || path.endsWith(".ssa") || path.endsWith(".ass")) RefreshEvent.subtitle(path);
+        else ServerEvent.setting(path);
+    }
+
+    private void onRefresh(Map<String, String> params) {
+        String type = params.get("type");
+        String path = params.get("path");
+        if (TextUtils.isEmpty(type)) return;
+        switch (type) {
+            case "detail":
+                RefreshEvent.detail();
+                break;
+            case "player":
+                RefreshEvent.player();
+                break;
+            case "danmaku":
+                RefreshEvent.danmaku(path);
+                break;
+            case "subtitle":
+                RefreshEvent.subtitle(path);
+                break;
+        }
     }
 
     private void onCast(Map<String, String> params) {

@@ -51,6 +51,7 @@ import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.cast.CastVideo;
@@ -65,6 +66,7 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.player.Timer;
 import com.fongmi.android.tv.player.danmu.Parser;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
@@ -93,7 +95,6 @@ import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
-import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.permissionx.guolindev.PermissionX;
@@ -117,7 +118,7 @@ import master.flame.danmaku.danmaku.model.IDisplay;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener {
+public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener, InfoDialog.Listener {
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
@@ -158,9 +159,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private PiP mPiP;
 
     public static void push(FragmentActivity activity, String text) {
-        String url = Sniffer.getUrl(text);
-        if (url.length() > 0) start(activity, url);
-        else file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
+        if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
+        else start(activity, Sniffer.getUrl(text));
     }
 
     public static void file(FragmentActivity activity, String path) {
@@ -583,11 +583,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void checkDanmu(String danmu) {
         mBinding.danmaku.release();
         mBinding.danmaku.setVisibility(danmu.isEmpty() ? View.GONE : View.VISIBLE);
-        App.execute(() -> {
-            String temp = danmu;
-            if (temp.startsWith("http")) temp = OkHttp.string(temp);
-            if (temp.length() > 0) mBinding.danmaku.prepare(new Parser(temp), mDanmakuContext);
-        });
+        if (danmu.length() > 0) App.execute(() -> mBinding.danmaku.prepare(new Parser(danmu), mDanmakuContext));
     }
 
     @Override
@@ -611,8 +607,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onItemClick(Result result) {
-        mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
-        mBinding.danmaku.hide();
+        try {
+            result.setUrl(Source.get().fetch(result));
+            mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
+            mBinding.danmaku.hide();
+        } catch (Exception e) {
+            ErrorEvent.extract(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -702,7 +704,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onInfo() {
         InfoDialog.create(this).title(mBinding.control.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).show();
-        setRedirect(true);
     }
 
     private void onFull() {
@@ -762,7 +763,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onSetting() {
-        mControlDialog = ControlDialog.create().parent(mBinding).history(mHistory).players(mPlayers).parse(isUseParse()).show(this);
+        mControlDialog = ControlDialog.create().parent(mBinding).history(mHistory).player(mPlayers).parse(isUseParse()).show(this);
     }
 
     private void onLock() {
@@ -1150,6 +1151,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
+        if (isRedirect()) return;
         if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
             mBinding.control.play.performClick();
         } else if (ActionEvent.NEXT.equals(event.getAction())) {
@@ -1162,7 +1164,27 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) {
+        if (isRedirect()) return;
+        switch (event.getType()) {
+            case DETAIL:
+                getDetail();
+                break;
+            case PLAYER:
+                onRefresh();
+                break;
+            case DANMAKU:
+                checkDanmu(event.getPath());
+                break;
+            case SUBTITLE:
+                mPlayers.setSub(Sub.from(event.getPath()));
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
+        if (isRedirect()) return;
         switch (event.getState()) {
             case 0:
                 setPosition();
@@ -1183,6 +1205,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 hideProgress();
                 mPlayers.reset();
                 setDefaultTrack();
+                mPlayers.prepared();
                 setTrackVisible(true);
                 checkPlayImg(mPlayers.isPlaying());
                 mHistory.setPlayer(mPlayers.getPlayer());
@@ -1225,7 +1248,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setDefaultTrack() {
         if (isInitTrack()) {
             setInitTrack(false);
-            mPlayers.prepared();
             mPlayers.setTrack(Track.find(getHistoryKey()));
         }
     }
@@ -1245,6 +1267,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
+        if (isRedirect()) return;
         if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else onRefresh();
     }
@@ -1590,6 +1613,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Override
+    public void onShare(CharSequence title, String url) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(Intent.EXTRA_TEXT, url);
+        intent.putExtra("name", title);
+        intent.putExtra("title", title);
+        intent.setType("text/plain");
+        startActivity(Util.getChooser(intent));
+        setRedirect(true);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) mPlayers.checkData(data);
@@ -1690,6 +1725,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         stopSearch();
         mClock.release();
         mPlayers.release();
+        Timer.get().reset();
         Source.get().stop();
         RefreshEvent.history();
         App.removeCallbacks(mR1, mR2, mR3, mR4);
