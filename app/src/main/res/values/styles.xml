@@ -4,6 +4,10 @@
         <item name="cornerFamily">rounded</item>
     </style>
 
+    <style name="Vod.GridNoRad">
+        <item name="cornerSize">0dp</item>
+    </style>
+    
     <style name="Vod.Grid">
         <item name="cornerSize">8dp</item>
     </style>

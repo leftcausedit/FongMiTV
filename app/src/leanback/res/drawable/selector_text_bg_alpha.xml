@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--该文件错误的, 会导致 App 崩溃-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:drawable="@drawable/shape_vod_name"/> <!-- 完全不透明 -->
+    <item android:state_focused="false" android:drawable="@drawable/shape_vod_name_alpha"/> <!-- 完全透明 -->
+</selector>

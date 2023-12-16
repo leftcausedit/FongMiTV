@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:background="@color/black_20"
         android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
+        app:shapeAppearanceOverlay="@style/Vod.GridNoRad"
         tools:src="@drawable/ic_img_loading" />
 
     <com.google.android.material.imageview.ShapeableImageView
@@ -24,7 +24,7 @@
         android:scaleType="center"
         android:src="@drawable/ic_vod_delete"
         android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
+        app:shapeAppearanceOverlay="@style/Vod.GridNoRad"
         tools:visibility="visible" />
 
     <com.google.android.material.imageview.ShapeableImageView
@@ -35,7 +35,7 @@
         android:scaleType="center"
         android:src="@drawable/ic_vod_search"
         android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
+        app:shapeAppearanceOverlay="@style/Vod.GridNoRad"
         tools:visibility="visible" />
 
     <com.google.android.material.imageview.ShapeableImageView
@@ -46,7 +46,7 @@
         android:scaleType="center"
         android:src="@drawable/ic_vod_clear"
         android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
+        app:shapeAppearanceOverlay="@style/Vod.GridNoRad"
         tools:visibility="visible" />
 
     <TextView
@@ -54,57 +54,64 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="#CC2196F3"
+        android:background="@color/selector_text_blue_alpha"
         android:ellipsize="end"
         android:padding="4dp"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="@color/selector_text_white_alpha"
         android:textSize="14sp"
         android:visibility="gone"
         tools:text="2022"
-        tools:visibility="visible" />
+        tools:visibility="visible"
+        android:duplicateParentState="true"/>
 
     <TextView
         android:id="@+id/site"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="#CCF44336"
+        android:background="@color/selector_text_red_alpha"
         android:ellipsize="end"
         android:padding="4dp"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="@color/selector_text_white_alpha"
         android:textSize="14sp"
         android:visibility="gone"
         tools:text="泥巴"
-        tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/remark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/name"
-        android:background="#CC177535"
-        android:ellipsize="end"
-        android:padding="4dp"
-        android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        tools:text="1080p" />
+        tools:visibility="visible"
+        android:duplicateParentState="true"/>
 
     <TextView
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/shape_vod_name"
+        android:background="@drawable/selector_text_bg_alpha"
         android:ellipsize="marquee"
-        android:gravity="center"
-        android:padding="6dp"
+        android:paddingBottom="30dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="10dp"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="@color/selector_text_white_alpha"
         android:textSize="16sp"
-        tools:text="蜘蛛人" />
+        tools:text="蜘蛛人"
+        android:duplicateParentState="true"/>
+
+    <TextView
+        android:id="@+id/remark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/name"
+        android:ellipsize="middle"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="15dp"
+        android:singleLine="true"
+        android:textColor="@color/selector_text_white_alpha"
+        android:textSize="11sp"
+        tools:text="1080p"
+        android:duplicateParentState="true"/>
 
     <View
         android:layout_width="match_parent"
