@@ -337,7 +337,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (item.isFolder()) {
             VodActivity.start(this, Result.folder(item));
         } else if (item.isPhoto()) {
-            List<Vod> vodList = new ArrayList<Vod>();
+            List<Vod> vodList = new ArrayList<>();
             vodList.add(item);
             PhotoActivity.start(this, vodList, vodList.indexOf(item));
         } else {
@@ -380,12 +380,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (mHistoryAdapter.indexOf(item) == 0) {
             mPresenter.setSearch(false);
             mPresenter.setDelete(false);
-            if (mPresenter.isClear()) {
-                setHistoryClear(false);
-            }
-            else {
-                setHistoryClear(true);
-            }
+            setHistoryClear(!mPresenter.isClear());
         }
     }
 
@@ -469,12 +464,24 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     }
 
+    // push cast
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onCastEvent(CastEvent event) {
+        bringAppToFront(this);
         if (ApiConfig.get().getConfig().equals(event.getConfig())) {
             VideoActivity.cast(this, event.getHistory().update(ApiConfig.getCid()));
         } else {
             ApiConfig.load(event.getConfig(), getCallback(event));
+        }
+    }
+
+    public void bringAppToFront(BaseActivity activity) {
+        try {
+            Intent intent = new Intent(activity, HomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            activity.startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
