@@ -17,6 +17,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
+import android.text.style.URLSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -528,11 +529,31 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             text = text.replace(m.group(), key);
             map.put(key, m.group(1));
         }
+        Matcher mHyperlink = Sniffer.URL.matcher(text);
+        while (mHyperlink.find()) {
+            map.put(mHyperlink.group() + "<hyperlink>", mHyperlink.group());
+        }
+
         SpannableStringBuilder span = new SpannableStringBuilder(text);
         for (String s : map.keySet()) {
-            int index = text.indexOf(s);
-            Result result = Result.type(map.get(s));
-            span.setSpan(getClickSpan(result), index, index + s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if (s.endsWith("<hyperlink>")) {
+                // 处理超链接，跳转到外部浏览器
+                String url = map.get(s);
+                int index = text.indexOf(url);
+                span.setSpan(new URLSpan(url) {
+                    @Override
+                    public void onClick(View widget) {
+                        // 处理点击事件，打开外部浏览器
+                        Uri uri = Uri.parse(getURL());
+                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                        widget.getContext().startActivity(intent);
+                    }
+                }, index, index + url.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else {
+                int index = text.indexOf(s);
+                Result result = Result.type(map.get(s));
+                span.setSpan(getClickSpan(result), index, index + s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
         }
         return span;
     }
