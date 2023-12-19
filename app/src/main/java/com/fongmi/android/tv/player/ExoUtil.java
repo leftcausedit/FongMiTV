@@ -65,8 +65,16 @@ public class ExoUtil {
     private static DatabaseProvider database;
     private static Cache cache;
 
-    public static LoadControl buildLoadControl() {
-        return new DefaultLoadControl();
+    public static LoadControl buildLoadControl(int times) {
+        DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
+                .setBackBuffer(times * DefaultLoadControl.DEFAULT_MAX_BUFFER_MS, false)
+                .setBufferDurationsMs(
+                        times * DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
+                        times * DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
+                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS,
+                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS)
+                .build();
+        return loadControl;
     }
 
     public static TrackSelector buildTrackSelector() {
