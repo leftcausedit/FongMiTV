@@ -608,7 +608,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setEpisodeActivated(Episode item) {
-        onResetStop();
+        onScrobbleStop();
         if (shouldEnterFullscreen(item)) return;
         setCurrentFlag(mBinding.flag.getSelectedPosition());
         for (int i = 0; i < mFlagAdapter.size(); i++) ((Flag) mFlagAdapter.get(i)).toggle(getCurrentFlag() == i, item);
@@ -616,8 +616,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         notifyItemChanged(mBinding.episode, mEpisodeAdapter);
         if (mEpisodeAdapter.size() == 0) return;
         if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
-        // onRefresh();
-        onResetStart(false);
+        onRefresh();
     }
 
     private void setQualityVisible(boolean visible) {
@@ -816,20 +815,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onReset(boolean replay) {
-        onResetStop();
-        onResetStart(replay);
-    }
-
-    private void onResetStop() {
-        onScrobbleStop();
         mClock.setCallback(null);
-    }
-
-    private void onResetStart(boolean replay) {
         if (mFlagAdapter.size() == 0) return;
         if (mEpisodeAdapter.size() == 0) return;
         getPlayer(getFlag(), getEpisode(), replay);
-        onScrobbleStart();
     }
 
     private boolean onResetToggle() {
@@ -1181,6 +1170,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
             case Player.STATE_ENDED:
+                onScrobbleStop();
                 checkEnded();
                 break;
         }

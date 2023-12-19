@@ -623,12 +623,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onItemClick(Episode item) {
-        onResetStop();
+        onScrobbleStop();
         if (shouldEnterFullscreen(item)) return;
         mFlagAdapter.toggle(item);
         notifyItemChanged(mEpisodeAdapter);
         mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
-        onResetStart(false);
+        onRefresh();
     }
 
     @Override
@@ -851,20 +851,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onReset(boolean replay) {
-        onResetStop();
-        onResetStart(replay);
-    }
-
-    private void onResetStop() {
-        onScrobbleStop();
         mClock.setCallback(null);
-    }
-
-    private void onResetStart(boolean replay) {
         if (mFlagAdapter.isEmpty()) return;
         if (mEpisodeAdapter.isEmpty()) return;
         getPlayer(getFlag(), getEpisode(), replay);
-        onScrobbleStart();
     }
 
     private boolean onResetToggle() {
@@ -1263,6 +1253,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
+                onScrobbleStop();
                 checkEnded();
                 break;
         }
