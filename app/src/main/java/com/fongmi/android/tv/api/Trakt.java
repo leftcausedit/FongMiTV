@@ -3,6 +3,7 @@ package com.fongmi.android.tv.api;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -136,7 +137,7 @@ public class Trakt {
             }
         }
 
-        // runOnUiThread(() -> Toast.makeText(App.get(), "Trakt " + src.optJSONObject(srcType).optString("title") + " " + (!src.optJSONObject(srcType).has("year") ? "" : src.optJSONObject(srcType).optString("year")), Toast.LENGTH_LONG).show());
+        // App.post(() -> Toast.makeText(App.get(), "Trakt " + src.optJSONObject(srcType).optString("title") + " " + (!src.optJSONObject(srcType).has("year") ? "" : src.optJSONObject(srcType).optString("year")), Toast.LENGTH_LONG).show());
 
         Request request = new Request.Builder()
                 .url(apiUrl + "/scrobble/" + scrobbleType)

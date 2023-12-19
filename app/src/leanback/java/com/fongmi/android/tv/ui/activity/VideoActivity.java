@@ -608,6 +608,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setEpisodeActivated(Episode item) {
+        onResetStop();
         if (shouldEnterFullscreen(item)) return;
         setCurrentFlag(mBinding.flag.getSelectedPosition());
         for (int i = 0; i < mFlagAdapter.size(); i++) ((Flag) mFlagAdapter.get(i)).toggle(getCurrentFlag() == i, item);
@@ -615,7 +616,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         notifyItemChanged(mBinding.episode, mEpisodeAdapter);
         if (mEpisodeAdapter.size() == 0) return;
         if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
-        onRefresh();
+        // onRefresh();
+        onResetStart(false);
     }
 
     private void setQualityVisible(boolean visible) {
@@ -759,11 +761,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onNext() {
+        // 检查当前是否为最后一集
         int current = getEpisodePosition();
         int max = mEpisodeAdapter.size() - 1;
         current = ++current > max ? max : current;
         Episode item = (Episode) mEpisodeAdapter.get(current);
         if (item.isActivated()) Notify.show(mHistory.isRevPlay() ? R.string.error_play_prev : R.string.error_play_next);
+        // 下一集
         else setEpisodeActivated(item);
     }
 
@@ -804,9 +808,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onRefresh() {
-        onScrobble("start");
-//        Runnable mRScrobble = () -> onScrobble("start");
-//        App.post(mRScrobble, 15 * 1000);
         onReset(false);
     }
 
@@ -815,10 +816,20 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onReset(boolean replay) {
+        onResetStop();
+        onResetStart(replay);
+    }
+
+    private void onResetStop() {
+        onScrobbleStop();
         mClock.setCallback(null);
+    }
+
+    private void onResetStart(boolean replay) {
         if (mFlagAdapter.size() == 0) return;
         if (mEpisodeAdapter.size() == 0) return;
         getPlayer(getFlag(), getEpisode(), replay);
+        onScrobbleStart();
     }
 
     private boolean onResetToggle() {
@@ -1122,18 +1133,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (ActionEvent.PLAY.equals(event.getAction())){
-            onScrobble("start");
-            onKeyCenter();
-        } else if (ActionEvent.PAUSE.equals(event.getAction())) {
-            onScrobble("pause");
+        if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())){
             onKeyCenter();
         } else if (ActionEvent.NEXT.equals(event.getAction())) {
-            mBinding.control.next.performClick();
+            mBinding.control.next.performClick(); // listener -> checkNext
         } else if (ActionEvent.PREV.equals(event.getAction())) {
-            mBinding.control.prev.performClick();
+            mBinding.control.prev.performClick(); // listener -> checkPrev
         } else if (ActionEvent.STOP.equals(event.getAction())) {
-            onScrobble("stop");
+            //onScrobbleStop();
             finish();
         }
     }
@@ -1154,8 +1161,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 setInitTrack(true);
                 setTrackVisible(false);
                 mClock.setCallback(this);
-                Runnable mRScrobble = () -> onScrobble("start");
-                App.post(mRScrobble, 15 * 1000);
                 break;
             case Player.STATE_IDLE:
                 break;
@@ -1163,6 +1168,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 showProgress();
                 break;
             case Player.STATE_READY:
+                onScrobbleStart();
                 stopSearch();
                 setMetadata();
                 resetToggle();
@@ -1175,7 +1181,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
             case Player.STATE_ENDED:
-                onScrobble("stop");
                 checkEnded();
                 break;
         }
@@ -1363,12 +1368,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
         if (visible) showInfo();
         else hideInfo();
-        onScrobble("pause");
         mPlayers.pause();
     }
 
     private void onPlay() {
-        onScrobble("start");
         mPlayers.play();
         hideCenter();
     }
@@ -1520,8 +1523,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Override
     public void onKeyCenter() {
-        if (mPlayers.isPlaying()) onPaused(true);
-        else onPlay();
+        if (mPlayers.isPlaying()) {
+            onPaused(true);
+            onScrobblePause();
+        }
+        else {
+            onPlay();
+            onScrobbleStart();
+        }
         hideControl();
     }
 
@@ -1587,7 +1596,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        onScrobble("stop");
+        onScrobbleStop();
         stopSearch();
         mClock.release();
         mPlayers.release();
@@ -1618,7 +1627,17 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                     break;
                 default:
             }
-//                Toast.makeText(App.get(), "ondestroyScrobble: " + progressf, Toast.LENGTH_LONG).show();
         }
     }
+
+    private void onScrobbleStart() {
+        onScrobble("start");
+    }
+    private void onScrobbleStop() {
+        onScrobble("stop");
+    }
+    private void onScrobblePause() {
+        onScrobble("pause");
+    }
+
 }

@@ -623,13 +623,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onItemClick(Episode item) {
+        onResetStop();
         if (shouldEnterFullscreen(item)) return;
         mFlagAdapter.toggle(item);
         notifyItemChanged(mEpisodeAdapter);
         mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
-        onRefresh();
-        Runnable mRScrobble = () -> onScrobble("start");
-        App.post(mRScrobble, 15 * 1000);
+        onResetStart(false);
     }
 
     @Override
@@ -760,13 +759,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void checkPlay() {
         setR1Callback();
-        if (mPlayers.isPlaying()) onPaused();
+        if (mPlayers.isPlaying()) {
+            onPaused();
+            onScrobblePause();
+        }
         else if (mPlayers.isEmpty()) onRefresh();
-        else onPlay();
+        else {
+            onPlay();
+            onScrobbleStart();
+        }
     }
 
     private void checkNext() {
-        onScrobble("stop");
         setR1Callback();
         if (mHistory.isRevPlay()) onPrev();
         else onNext();
@@ -847,10 +851,20 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onReset(boolean replay) {
+        onResetStop();
+        onResetStart(replay);
+    }
+
+    private void onResetStop() {
+        onScrobbleStop();
         mClock.setCallback(null);
+    }
+
+    private void onResetStart(boolean replay) {
         if (mFlagAdapter.isEmpty()) return;
         if (mEpisodeAdapter.isEmpty()) return;
         getPlayer(getFlag(), getEpisode(), replay);
+        onScrobbleStart();
     }
 
     private boolean onResetToggle() {
@@ -1194,7 +1208,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         } else if (ActionEvent.PREV.equals(event.getAction())) {
             mBinding.control.prev.performClick();
         } else if (ActionEvent.STOP.equals(event.getAction())) {
-            onScrobble("stop");
             finish();
         }
     }
@@ -1227,15 +1240,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 setInitTrack(true);
                 setTrackVisible(false);
                 mClock.setCallback(this);
-                Runnable mRScrobble = () -> onScrobble("start");
-                App.post(mRScrobble, 15 * 1000);
                 break;
             case Player.STATE_IDLE:
                 break;
             case Player.STATE_BUFFERING:
-                // showProgress();
+                showProgress();
                 break;
             case Player.STATE_READY:
+                onScrobbleStart();
                 stopSearch();
                 checkRotate();
                 setMetadata();
@@ -1251,7 +1263,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
-                onScrobble("stop");
                 checkEnded();
                 break;
         }
@@ -1445,14 +1456,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         checkPlayImg(false);
         mPlayers.pause();
-        onScrobble("pause");
     }
 
     private void onPlay() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         checkPlayImg(true);
         mPlayers.play();
-        onScrobble("start");
     }
 
     public boolean isForeground() {
@@ -1764,7 +1773,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        onScrobble("stop");
+        onScrobbleStop();
         stopSearch();
         mClock.release();
         mPlayers.release();
@@ -1800,7 +1809,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 default:
             }
 //                Toast.makeText(App.get(), "ondestroyScrobble: " + progressf, Toast.LENGTH_LONG).show();
-
         }
     }
+
+    private void onScrobbleStart() {
+        onScrobble("start");
+    }
+    private void onScrobbleStop() {
+        onScrobble("stop");
+    }
+    private void onScrobblePause() {
+        onScrobble("pause");
+    }
+
 }
