@@ -21,6 +21,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.ApiConfig;
 import com.fongmi.android.tv.api.LiveConfig;
+import com.fongmi.android.tv.api.Trakt;
 import com.fongmi.android.tv.api.WallConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.databinding.ActivityMainBinding;
@@ -114,6 +115,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                 checkAction(getIntent());
                 RefreshEvent.config();
                 RefreshEvent.video();
+                Trakt.create(MainActivity.this);
             }
 
             @Override

@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
@@ -39,6 +40,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.ApiConfig;
+import com.fongmi.android.tv.api.Trakt;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
@@ -802,6 +804,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onRefresh() {
+        onScrobble("start");
+//        Runnable mRScrobble = () -> onScrobble("start");
+//        App.post(mRScrobble, 15 * 1000);
         onReset(false);
     }
 
@@ -1117,13 +1122,18 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
+        if (ActionEvent.PLAY.equals(event.getAction())){
+            onScrobble("start");
+            onKeyCenter();
+        } else if (ActionEvent.PAUSE.equals(event.getAction())) {
+            onScrobble("pause");
             onKeyCenter();
         } else if (ActionEvent.NEXT.equals(event.getAction())) {
             mBinding.control.next.performClick();
         } else if (ActionEvent.PREV.equals(event.getAction())) {
             mBinding.control.prev.performClick();
         } else if (ActionEvent.STOP.equals(event.getAction())) {
+            onScrobble("stop");
             finish();
         }
     }
@@ -1144,6 +1154,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 setInitTrack(true);
                 setTrackVisible(false);
                 mClock.setCallback(this);
+                Runnable mRScrobble = () -> onScrobble("start");
+                App.post(mRScrobble, 15 * 1000);
                 break;
             case Player.STATE_IDLE:
                 break;
@@ -1163,6 +1175,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
             case Player.STATE_ENDED:
+                onScrobble("stop");
                 checkEnded();
                 break;
         }
@@ -1350,10 +1363,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
         if (visible) showInfo();
         else hideInfo();
+        onScrobble("pause");
         mPlayers.pause();
     }
 
     private void onPlay() {
+        onScrobble("start");
         mPlayers.play();
         hideCenter();
     }
@@ -1572,11 +1587,38 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        onScrobble("stop");
         stopSearch();
         mClock.release();
         mPlayers.release();
         Source.get().stop();
         RefreshEvent.history();
         App.removeCallbacks(mR1, mR2, mR3);
+    }
+
+    private void onScrobble(String scrobbleType) {
+        long current, duration;
+        current = mPlayers.getPosition();
+        duration = mPlayers.getDuration();
+        if (duration > 1000 * 60 * 5) {
+            float progressf = (float) current * 100 / duration ;
+            String type;
+            int episodePos = getEpisodePosition() + 1;
+            int episodeSize = mEpisodeAdapter.size();
+            if (episodeSize > 2) type = "show"; else type = "movie";
+            switch (scrobbleType) {
+                case "stop":
+                    Trakt.scrobbleStop(mBinding.name.getText().toString(), type, mBinding.year.getText().toString(), episodePos, progressf);
+                    break;
+                case "start":
+                    Trakt.scrobbleStart(mBinding.name.getText().toString(), type, mBinding.year.getText().toString(), episodePos, progressf);
+                    break;
+                case "pause":
+                    Trakt.scrobblePause(mBinding.name.getText().toString(), type, mBinding.year.getText().toString(), episodePos, progressf);
+                    break;
+                default:
+            }
+//                Toast.makeText(App.get(), "ondestroyScrobble: " + progressf, Toast.LENGTH_LONG).show();
+        }
     }
 }

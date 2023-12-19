@@ -28,13 +28,14 @@ import okhttp3.dnsoverhttps.DnsOverHttps;
 
 public class OkHttp {
 
-    private static final int TIMEOUT = 30 * 1000;
+    private static final int TIMEOUT = 15 * 1000;
     private static final int CACHE = 100 * 1024 * 1024;
     private static final ProxySelector defaultSelector;
 
     private boolean proxy;
     private DnsOverHttps dns;
     private OkHttpClient client;
+    private OkHttpClient cachedClient;
     private OkProxySelector selector;
 
     static {
@@ -74,6 +75,11 @@ public class OkHttp {
     public static OkHttpClient client() {
         if (get().client != null) return get().client;
         return get().client = getBuilder().build();
+    }
+
+    public static OkHttpClient cachedClient() {
+        if (get().cachedClient != null) return get().cachedClient;
+        return get().cachedClient = getBuilder().build().newBuilder().cache(new Cache(Path.cache(), CACHE)).build();
     }
 
     public static OkHttpClient client(int timeout) {

@@ -24,6 +24,7 @@ import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.ApiConfig;
 import com.fongmi.android.tv.api.LiveConfig;
 import com.fongmi.android.tv.api.WallConfig;
+import com.fongmi.android.tv.api.Trakt;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Func;
 import com.fongmi.android.tv.bean.History;
@@ -176,6 +177,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 getHistory();
                 getVideo();
                 setFocus();
+                Trakt.create(HomeActivity.this);
             }
 
             @Override

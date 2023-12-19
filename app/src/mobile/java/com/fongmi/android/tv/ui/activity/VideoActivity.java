@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
@@ -45,6 +46,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.ApiConfig;
+import com.fongmi.android.tv.api.Trakt;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
@@ -158,6 +160,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private Runnable mR4;
     private Clock mClock;
     private PiP mPiP;
+    private String mYear;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -576,6 +579,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (!item.getTypeName().isEmpty()) sb.append(getString(R.string.detail_type, item.getTypeName())).append("  ");
         view.setVisibility(sb.length() == 0 ? View.GONE : View.VISIBLE);
         view.setText(Util.substring(sb.toString(), 2));
+        mYear = item.getVodYear();
     }
 
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
@@ -624,6 +628,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         notifyItemChanged(mEpisodeAdapter);
         mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
         onRefresh();
+        Runnable mRScrobble = () -> onScrobble("start");
+        App.post(mRScrobble, 15 * 1000);
     }
 
     @Override
@@ -760,6 +766,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void checkNext() {
+        onScrobble("stop");
         setR1Callback();
         if (mHistory.isRevPlay()) onPrev();
         else onNext();
@@ -867,6 +874,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         onRefresh();
     }
 
+    // 单点设置片尾跳过
     private void onEnding() {
         long current = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
@@ -876,6 +884,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setR1Callback();
     }
 
+    // 长按重置片尾跳过
     private boolean onEndingReset() {
         mHistory.setEnding(0);
         mBinding.control.action.ending.setText(R.string.play_ed);
@@ -883,6 +892,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return true;
     }
 
+    // 单点设置跳过片头
     private void onOpening() {
         long current = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
@@ -892,6 +902,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setR1Callback();
     }
 
+    // 长按重置跳过片头
     private boolean onOpeningReset() {
         mHistory.setOpening(0);
         mBinding.control.action.opening.setText(R.string.play_op);
@@ -899,6 +910,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return true;
     }
 
+    // 全屏下选集菜单
     private void onEpisodes() {
         mDialogs.add(EpisodeListDialog.create(this).episodes(mEpisodeAdapter.getItems()).show());
     }
@@ -1079,6 +1091,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         });
     }
 
+    // 检查播放线路
     private void checkFlag(Vod item) {
         boolean empty = item.getVodFlags().isEmpty();
         mBinding.flag.setVisibility(empty ? View.GONE : View.VISIBLE);
@@ -1152,6 +1165,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         keep.save();
     }
 
+    // 音轨、视轨
     @Override
     public void onTrackClick(Track item) {
         item.setKey(getHistoryKey());
@@ -1180,6 +1194,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         } else if (ActionEvent.PREV.equals(event.getAction())) {
             mBinding.control.prev.performClick();
         } else if (ActionEvent.STOP.equals(event.getAction())) {
+            onScrobble("stop");
             finish();
         }
     }
@@ -1212,11 +1227,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 setInitTrack(true);
                 setTrackVisible(false);
                 mClock.setCallback(this);
+                Runnable mRScrobble = () -> onScrobble("start");
+                App.post(mRScrobble, 15 * 1000);
                 break;
             case Player.STATE_IDLE:
                 break;
             case Player.STATE_BUFFERING:
-                showProgress();
+                // showProgress();
                 break;
             case Player.STATE_READY:
                 stopSearch();
@@ -1234,6 +1251,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
+                onScrobble("stop");
                 checkEnded();
                 break;
         }
@@ -1252,6 +1270,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void checkEnded() {
         if (mBinding.control.action.loop.isActivated()) {
+            // 循环播放
             onReset(true);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -1426,12 +1445,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         checkPlayImg(false);
         mPlayers.pause();
+        onScrobble("pause");
     }
 
     private void onPlay() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         checkPlayImg(true);
         mPlayers.play();
+        onScrobble("start");
     }
 
     public boolean isForeground() {
@@ -1743,6 +1764,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        onScrobble("stop");
         stopSearch();
         mClock.release();
         mPlayers.release();
@@ -1753,5 +1775,32 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.result.removeObserver(mObserveDetail);
         mViewModel.player.removeObserver(mObservePlayer);
         mViewModel.search.removeObserver(mObserveSearch);
+    }
+
+    private void onScrobble(String scrobbleType) {
+        long current, duration;
+        current = mPlayers.getPosition();
+        duration = mPlayers.getDuration();
+        if (duration > 1000 * 60 * 5) {
+            float progressf = (float) current * 100 / duration ;
+            String type;
+            int episodePos = mEpisodeAdapter.getPosition() + 1;
+            int episodeSize = mEpisodeAdapter.getItemCount();
+            if (episodeSize > 2) type = "show"; else type = "movie";
+            switch (scrobbleType) {
+                case "stop":
+                    Trakt.scrobbleStop(mBinding.name.getText().toString(), type, mYear, episodePos, progressf);
+                    break;
+                case "start":
+                    Trakt.scrobbleStart(mBinding.name.getText().toString(), type, mYear, episodePos, progressf);
+                    break;
+                case "pause":
+                    Trakt.scrobblePause(mBinding.name.getText().toString(), type, mYear, episodePos, progressf);
+                    break;
+                default:
+            }
+//                Toast.makeText(App.get(), "ondestroyScrobble: " + progressf, Toast.LENGTH_LONG).show();
+
+        }
     }
 }
