@@ -3,10 +3,10 @@
     android:shape="rectangle">
 
     <corners
-        android:bottomLeftRadius="8dp"
-        android:bottomRightRadius="8dp" />
+        android:bottomLeftRadius="4dp"
+        android:bottomRightRadius="4dp" />
 
-    <solid android:color="@color/black_50" />
+<!--    <solid android:color="@color/black_50" />-->
 
     <padding
         android:bottom="6dp"
@@ -14,4 +14,10 @@
         android:right="6dp"
         android:top="6dp" />
 
+    <gradient
+        android:startColor="#FF000000"
+        android:endColor="#00000000"
+        android:type="linear"
+        android:angle="90"
+        />
 </shape>

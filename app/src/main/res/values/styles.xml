@@ -9,7 +9,7 @@
     </style>
     
     <style name="Vod.Grid">
-        <item name="cornerSize">8dp</item>
+        <item name="cornerSize">4dp</item>
     </style>
 
     <style name="Vod.Circle">
