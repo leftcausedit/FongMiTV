@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:fitsSystemWindows="false"
     android:orientation="vertical">
 
     <androidx.core.widget.NestedScrollView
@@ -18,78 +18,234 @@
             android:layout_height="match_parent">
 
             <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/pic"
-                android:layout_width="120dp"
-                android:layout_height="168dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
+                android:id="@+id/landscape"
+                android:layout_width="match_parent"
+                android:layout_height="203dp"
                 android:scaleType="centerCrop"
-                app:shapeAppearance="@style/Vod.Grid" />
+                android:layout_marginTop="35dp"
+                app:shapeAppearance="@style/Vod.GridNoRad"
+                tools:ignore="UnusedAttribute" />
+
+            <RelativeLayout
+                android:id="@+id/namespace"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/landscape"
+                android:background="#30424242">
+                <TextView
+                    android:id="@+id/name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="end"
+                    android:textColor="@color/white_80"
+                    android:textSize="25sp"
+                    android:textStyle="bold"
+                    tools:text="海賊王" />
+
+                <TextView
+                    android:id="@+id/originalName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/name"
+                    android:layout_alignStart="@+id/name"
+                    android:layout_marginBottom="4dp"
+                    android:ellipsize="end"
+                    android:textColor="@color/white_80"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/poppins"
+                    tools:text="海賊王"
+                    tools:targetApi="p" />
+            </RelativeLayout>
+
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/pic"
+                android:layout_width="140dp"
+                android:layout_height="210dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                android:layout_below="@+id/namespace"
+                android:scaleType="centerCrop"
+                app:shapeAppearance="@style/Vod.GridNoRad" />
 
             <LinearLayout
                 android:id="@+id/info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_toEndOf="@+id/pic"
-                android:gravity="center_vertical"
-                android:minHeight="168dp"
+                android:layout_alignTop="@+id/pic"
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/name"
+                    android:id="@+id/date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    tools:text="海賊王" />
+                    android:singleLine="true"
+                    android:textColor="@color/white_80"
+                    android:layout_marginTop="8dp"
+                    android:textSize="14sp"
+                    tools:text="2023-10-10" />
 
                 <TextView
-                    android:id="@+id/director"
+                    android:id="@+id/type"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="@color/white_80"
                     android:textSize="14sp"
-                    tools:text="尾田榮一郎" />
+                    tools:text="动画" />
 
-                <TextView
-                    android:id="@+id/site"
-                    android:layout_width="wrap_content"
+
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:cardCornerRadius="8dp"
                     android:layout_marginTop="8dp"
-                    android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="14sp"
-                    tools:text="漫畫人" />
+                    android:padding="8dp"
+                    app:cardBackgroundColor="#FF000000">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/shape_vod_content"
+                        android:scaleType="centerCrop"/>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:id="@+id/rating"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:singleLine="true"
+                            android:textColor="@color/white_70"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            tools:text="9.0" />
+                    </RelativeLayout>
+
+                </androidx.cardview.widget.CardView>
+
+
+
+
+
+
+<!--                <TextView-->
+<!--                    android:id="@+id/director"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="8dp"-->
+<!--                    android:singleLine="true"-->
+<!--                    android:textColor="@color/white_80"-->
+<!--                    android:textSize="14sp"-->
+<!--                    tools:text="尾田榮一郎" />-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/site"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="8dp"-->
+<!--                    android:singleLine="true"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textSize="14sp"-->
+<!--                    tools:text="漫畫人" />-->
+
+
 
             </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/play_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/pic"
+                android:layout_toEndOf="@id/pic"
+                android:contentDescription="@string/play"
+                app:icon="@drawable/ic_notify_play"
+                app:iconPadding="0dp"
+                app:iconSize="40dp"
+                android:backgroundTint="@color/material_dynamic_primary10"/>
 
             <TextView
                 android:id="@+id/content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/info"
+                android:layout_below="@+id/pic"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:layout_marginEnd="16dp"
+                android:padding="20dp"
+                android:background="@drawable/shape_vod_content"
                 android:ellipsize="end"
                 android:lineSpacingExtra="4dp"
-                android:maxLines="2"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                tools:text="相傳22年前，在一個童話般的世界裡，曾經擁有一切的海賊王在走上斷頭台的時候對人們狂笑道：“想要我的財寶是嗎，想要就給你們！去找吧，全世界的寶藏都在那裡！”……自此開始，全世界勇敢的男人都離開了平庸的生活，走向了大海，向著埋藏海賊王寶藏的偉大航道挺進！世界簡直成為了大海賊時代！在某個村子的小孩莫奇。 D.路飛對“海賊王”甚為仰慕，立志要成為新一代的海賊王。因此他希望駐紮在村子的海盜團能帶他出海，可是遭船長紅發撒古斯拒絕。有一天路飛不小心偷吃了撒古斯帶來的戰利品－惡魔果實，成為了永遠不能游泳的橡皮人，令他的海盜夢想泡湯。後來路飛被一群討厭撒古斯的人捉了，在被海獸吃掉之際，被撒古斯救走，而撒古斯的手也犧牲了。撒古斯臨行前將草帽送給路飛，使他重燃起當海賊王的決心。事隔十年，苦練一身橡皮絕技的少年路飛揚帆出發，開始找尋One Piece的冒險…… 傳說開始了！ ！大家帶著新的誓言，終到達了“偉大航道”的入口。路飛他們攀山、過海，眼看就要闖進去了，面前郤出現了一個黑團？ ！圍繞著“大秘寶one piece”而展開的海洋冒險故事現在開始！" />
+                android:textColor="@color/white_80"
+                android:textSize="15sp"
+                tools:text="相傳22年前，十年，苦就要闖進去了，面前郤出現了一個黑團？ ！圍繞著“大秘寶one piece”而展開的海洋冒險故事現在開始！" />
+
+            <HorizontalScrollView
+                android:id="@+id/links"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_below="@id/content"
+                android:fadeScrollbars="true"
+                android:scrollbars="none">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/trakt_link"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:backgroundTint="@color/material_dynamic_primary10"
+                        app:icon="@drawable/ic_fab_link"
+                        android:text="Trakt"
+                        android:textSize="15sp"
+                        app:iconSize="20dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tmdb_link"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="@color/material_dynamic_primary10"
+                        app:icon="@drawable/ic_fab_link"
+                        android:text="TMDB"
+                        android:textSize="15sp"
+                        app:iconSize="20dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/douban_link"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="@color/material_dynamic_primary10"
+                        app:icon="@drawable/ic_fab_link"
+                        android:text="Douban"
+                        android:textSize="15sp"
+                        app:iconSize="20dp"/>
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/flag"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/content"
+                android:layout_below="@+id/links"
                 android:layout_marginTop="16dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"

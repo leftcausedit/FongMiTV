@@ -279,7 +279,7 @@ public class SiteViewModel extends ViewModel {
         this.search.postValue(result);
     }
 
-    private void execute(MutableLiveData<Result> result, Callable<Result> callable) {
+    public void execute(MutableLiveData<Result> result, Callable<Result> callable) {
         if (executor != null) executor.shutdownNow();
         executor = Executors.newFixedThreadPool(2);
         executor.execute(() -> {
