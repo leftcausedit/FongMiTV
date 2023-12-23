@@ -10,11 +10,22 @@
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_above="@+id/name"
         android:background="@color/black_20"
         android:scaleType="center"
         app:shapeAppearanceOverlay="@style/Vod.GridNoRad"
         tools:src="@drawable/ic_img_loading" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignStart="@id/image"
+        android:layout_alignEnd="@id/image"
+        android:layout_alignBottom="@id/image"
+        android:layout_alignTop="@id/image"
+        android:background="@drawable/shape_vod_image" />
 
     <TextView
         android:id="@+id/year"
@@ -52,15 +63,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/selector_text_bg_alpha"
+        android:layout_alignStart="@id/image"
+        android:layout_alignEnd="@id/image"
+        android:gravity="center"
+        android:padding="10dp"
+        android:background="@color/black"
         android:ellipsize="marquee"
-        android:paddingBottom="30dp"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:paddingTop="10dp"
         android:singleLine="true"
-        android:textColor="@color/selector_text_white_alpha"
+        android:textColor="@color/white_80"
         android:textSize="16sp"
+        android:textStyle="bold"
         tools:text="蜘蛛人"
         android:duplicateParentState="true"/>
 
@@ -68,13 +80,12 @@
         android:id="@+id/remark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/name"
-        android:ellipsize="middle"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="15dp"
+        android:layout_alignBottom="@+id/image"
+        android:layout_alignStart="@id/image"
+        android:ellipsize="marquee"
+        android:padding="10dp"
         android:singleLine="true"
-        android:textColor="@color/selector_text_white_alpha"
+        android:textColor="@color/white_80"
         android:textSize="11sp"
         tools:text="1080p"
         android:duplicateParentState="true"/>

@@ -10,21 +10,35 @@
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:foregroundGravity="center"
+        android:layout_centerInParent="true"
+        android:layout_above="@+id/name"
         android:background="@color/black_20"
         android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
+        app:shapeAppearanceOverlay="@style/Vod.GridNoRad"
         tools:src="@drawable/ic_img_loading" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignStart="@id/image"
+        android:layout_alignEnd="@id/image"
+        android:layout_alignBottom="@id/image"
+        android:layout_alignTop="@id/image"
+        android:background="@drawable/shape_vod_image" />
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/delete"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@+id/name"
+        android:layout_centerInParent="true"
         android:background="@color/black_50"
         android:scaleType="center"
         android:src="@drawable/ic_action_delete"
         android:visibility="gone"
-        app:shapeAppearanceOverlay="@style/Vod.Grid"
+        app:shapeAppearanceOverlay="@style/Vod.GridNoRad"
         tools:visibility="visible" />
 
     <TextView
@@ -68,28 +82,28 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_alignStart="@id/image"
+        android:layout_alignEnd="@id/image"
         android:background="@drawable/shape_vod_name"
         android:ellipsize="marquee"
-        android:paddingBottom="25dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="10dp"
+        android:padding="10dp"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="14sp"
+        android:textColor="@color/white_80"
+        android:textSize="16sp"
         tools:text="蜘蛛人" />
 
     <TextView
         android:id="@+id/remark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/name"
+        android:layout_alignBottom="@+id/image"
+        android:layout_alignStart="@id/image"
         android:ellipsize="marquee"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
         android:paddingBottom="10dp"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="@color/white_80"
         android:textSize="9sp"
         tools:text="1080p"
         tools:ignore="SmallSp" />

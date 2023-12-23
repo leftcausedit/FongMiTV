@@ -17,7 +17,7 @@ public class Style implements Parcelable {
     private float ratio;
 
     public static Style rect() {
-        return new Style("rect", 0.75f);
+        return new Style("rect", 0.57f);
     }
 
     public static Style list() {
