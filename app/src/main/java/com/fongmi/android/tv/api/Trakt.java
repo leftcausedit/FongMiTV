@@ -32,7 +32,7 @@ public class Trakt {
     private static final String clientSerect = "c4e73c927f10ce4a9fedd8ac99eef33338666819d0511f9e793b02108a58387e";
     private static String deviceCode;
     private static String refreshToken = "95b7b7fc6ba6cc171a0e24e0d119c125ff089ed97229348a80ae06fdf8e705";
-    private static final String apiUrl = "https://api.trakt.tv";
+    public static final String apiUrl = "https://api.trakt.tv";
     private final Context context;
     private static final Handler handler = new Handler();
     private static final int POLLING_INTERVAL = 1000;
@@ -86,24 +86,33 @@ public class Trakt {
         headers.put("trakt-api-key", clientId);
         return headers;
     }
+    public static Headers getTraktHeaders() {
+        return new Headers.Builder()
+                .add("Content-Type", "application/json")
+                .add("Authorization", "Bearer " + accessToken)
+                .add("trakt-api-version", "2")
+                .add("trakt-api-key", clientId)
+                .build();
+    }
+
     public interface TraktCallback {
         void onSuccess(JSONObject result);
         void onError(Throwable throwable);
     }
 
-    public static void scrobbleStart(String title, String type, String year, int episodePos, float progress) {
-        toScrobble(title, type, year, episodePos, progress, "start");
+    public static void scrobbleStart(String title, String type, String year, String tmdbId, int episodePos, float progress) {
+        toScrobble(title, type, year, tmdbId, episodePos, progress, "start");
     }
-    public static void scrobblePause(String title, String type, String year, int episodePos, float progress) {
-        toScrobble(title, type, year, episodePos, progress, "pause");
+    public static void scrobblePause(String title, String type, String year, String tmdbId, int episodePos, float progress) {
+        toScrobble(title, type, year, tmdbId, episodePos, progress, "pause");
     }
-    public static void scrobbleStop(String title, String type, String year, int episodePos, float progress) {
-        toScrobble(title, type, year, episodePos, progress, "stop");
+    public static void scrobbleStop(String title, String type, String year, String tmdbId, int episodePos, float progress) {
+        toScrobble(title, type, year, tmdbId, episodePos, progress, "stop");
     }
 
-    public static void toScrobble(String title, String type, String year, int episodePos, float progress, String scrobbleType) {
+    public static void toScrobble(String title, String type, String year, String tmdbId, int episodePos, float progress, String scrobbleType) {
 
-        findItem(title, type, year, episodePos, new TraktCallback() {
+        findItem(title, type, year, tmdbId, episodePos, new TraktCallback() {
             @Override
             public void onSuccess(JSONObject result) {
                 System.out.println("Trakt findItem: have item");
@@ -148,7 +157,7 @@ public class Trakt {
     }
 
 
-    private static Map.Entry<String, String> parseShowTitle(String showTitle) {
+    private static Map.Entry<String, String> parseTitle(String showTitle) {
         String patternString = "^(.+?)(?:第(.+?)季)?$";
 
         Map<String, String> chineseToArabic = new HashMap<>();
@@ -180,7 +189,8 @@ public class Trakt {
 
     public static void getTMDBResult(String title, String type, TraktCallback callback) {
         type = parseTypeTMDB(type);
-        if (type.equals("tv")) title = parseShowTitle(title).getKey();
+//        if (type.equals("tv"))
+        title = parseTitle(title).getKey();
 
         Request request = new Request.Builder()
                 .url("https://api.themoviedb.org/3/search/" + type + "?query=" + title + "&include_adult=false&language=zh-CN&page=1")
@@ -209,48 +219,72 @@ public class Trakt {
     }
 
     private static String parseTypeTMDB(String type) {
-        if (type.equals("movie") || type.equals("movies")) type = "movie";
-        else if (type.equals("series") || type.equals("show") || type.equals("shows") || type.equals("tv")) {
-            type = "tv";
-        } else type = "multi";
+        switch (type) {
+            case "movie": case "movies":
+                type = "movie"; break;
+            case "series": case "show": case "shows": case "tv":
+                type = "tv"; break;
+            default:
+                type = "multi"; break;
+        }
         return type;
     }
 
     private static String parseTypeTrakt(String type) {
-        if (type.equals("movie") || type.equals("movies")) type = "movie";
-        else if (type.equals("series") || type.equals("show") || type.equals("shows") || type.equals("tv")) {
-            type = "show";
-        } else type = "movie,show";
+        switch (type) {
+            case "movie": case "movies":
+                type = "movie"; break;
+            case "series": case "show": case "shows": case "tv":
+                type = "show"; break;
+            default:
+                type = "movie,show"; break;
+        }
         return type;
     }
-    public static void findItem(String title, String type, String year, int episodePos, TraktCallback callback) {
 
-        getTMDBResult(title, type, new TraktCallback() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                String tmdbId = Integer.toString(result.optInt("id"));
-                getItemByTMDBId(tmdbId, type, title, episodePos, new TraktCallback() {
-                    @Override
-                    public void onSuccess(JSONObject result) {
-                        callback.onSuccess(result);
-                    }
+    public static void findItem(String title, String type, String year, String tmdbId, int episodePos, TraktCallback callback) {
+        if (!tmdbId.isEmpty()){
+            getItemByTMDBId(tmdbId, type, title, episodePos, new TraktCallback() {
+                @Override
+                public void onSuccess(JSONObject result) {
+                    callback.onSuccess(result);
+                }
 
-                    @Override
-                    public void onError(Throwable throwable) {
-                    }
-                });
-            }
+                @Override
+                public void onError(Throwable throwable) {
+                }
+            });
+        } else {
+            getTMDBResult(title, type, new TraktCallback() {
+                @Override
+                public void onSuccess(JSONObject result) {
+                    String tmdbId = Integer.toString(result.optInt("id"));
+                    String type = result.optString("media_type");
+                    getItemByTMDBId(tmdbId, type, title, episodePos, new TraktCallback() {
+                        @Override
+                        public void onSuccess(JSONObject result) {
+                            callback.onSuccess(result);
+                        }
 
-            @Override
-            public void onError(Throwable throwable) {
-            }
-        });
+                        @Override
+                        public void onError(Throwable throwable) {
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                }
+            });
+        }
     }
-    public static void getItemByTMDBId(String tmdbId, String title, String type, int episodePos, TraktCallback callback) {
+    public static void getItemByTMDBId(String tmdbId, String type, String title, int episodePos, TraktCallback callback) {
         String season;
         // keep empty string as empty
-        if (!type.isEmpty()) type = parseTypeTrakt(type);
-        season = parseShowTitle(title).getValue();
+//        if (!type.isEmpty())
+        type = parseTypeTrakt(type);
+        String finalType = type;
+        season = parseTitle(title).getValue();
 
         String finalSeason = season;
         OkHttp.cachedClient().newCall(new Request.Builder().url(apiUrl + "/search/tmdb/" + tmdbId + "?type=" + type).get()
@@ -269,7 +303,7 @@ public class Trakt {
                         callback.onError(e);
                         return;
                     }
-
+                    if (result == null) return;
                     String finalType = result.optString("type", "");
                     if (finalType.equals("show")) {
                         String slug = result.optJSONObject(finalType).optJSONObject("ids").optString("slug");

@@ -32,6 +32,15 @@ public class Vod implements Parcelable {
     @SerializedName("vod_name")
     private String vodName;
 
+    @Element(name = "media_type", required = false)
+    @SerializedName("vod_media_type")
+    private String vodMediaType;
+
+
+    @Element(name = "tmdb_id", required = false)
+    @SerializedName("vod_tmdb_id")
+    private String vodTMDBId;
+
     @Element(name = "type", required = false)
     @SerializedName("type_name")
     private String typeName;
@@ -118,6 +127,23 @@ public class Vod implements Parcelable {
     public void setVodName(String vodName) {
         this.vodName = vodName;
     }
+
+    public String getVodMediaType() {
+        return TextUtils.isEmpty(vodMediaType) ? "" : vodMediaType.trim();
+    }
+
+    public void setVodMediaType(String vodMediaType) {
+        this.vodMediaType = vodMediaType;
+    }
+
+    public String getVodTMDBId() {
+        return TextUtils.isEmpty(vodTMDBId) ? "" : vodTMDBId.trim();
+    }
+
+    public void setVodTMDBId(String vodTMDBId) {
+        this.vodTMDBId = vodTMDBId;
+    }
+
 
     public String getTypeName() {
         return TextUtils.isEmpty(typeName) ? "" : typeName.trim();

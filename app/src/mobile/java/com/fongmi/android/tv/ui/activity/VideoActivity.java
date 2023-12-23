@@ -161,6 +161,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private Clock mClock;
     private PiP mPiP;
     private String mYear;
+    private Vod currentVod;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -186,14 +187,22 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     public static void start(Activity activity, String key, String id, String name) {
-        start(activity, key, id, name, null, null, false);
+        start(activity, key, id, name, null, null, null);
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic) {
-        start(activity, key, id, name, pic, null, false);
+        start(activity, key, id, name, pic, null, null);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, String mediaType, String tmdbId) {
+        start(activity, key, id, name, pic, mediaType, tmdbId, null, false);
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean collect) {
+        start(activity, key, id, name, pic, null, null, mark, collect);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, String mediaType, String tmdbId, String mark, boolean collect) {
         Intent intent = new Intent(activity, VideoActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("collect", collect);
         intent.putExtra("mark", mark);
@@ -201,9 +210,20 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         intent.putExtra("pic", pic);
         intent.putExtra("key", key);
         intent.putExtra("id", id);
+        intent.putExtra("tmdb_id", tmdbId);
+        intent.putExtra("media_type", mediaType);
         activity.startActivity(intent);
     }
 
+    private String getTMDBId() {
+        return Objects.toString(getIntent().getStringExtra("tmdb_id"), "");
+    }
+
+    private String getMediaType() {
+        String type = Objects.toString(getIntent().getStringExtra("media_type"),"");
+        if (type.isEmpty() && !getCurrentVod().getVodMediaType().isEmpty()) type = getCurrentVod().getVodMediaType();
+        return type;
+    }
     private String getName() {
         return Objects.toString(getIntent().getStringExtra("name"), "");
     }
@@ -497,6 +517,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setDetail(Vod item) {
+        setCurrentVod(item);
         mBinding.progressLayout.showContent();
         mBinding.video.setTag(item.getVodPic(getPic()));
         mBinding.name.setText(item.getVodName(getName()));
@@ -515,6 +536,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         checkKeepImg();
     }
 
+    private void setCurrentVod(Vod item) {
+        this.currentVod = item;
+    }
+    private Vod getCurrentVod() {
+        return currentVod;
+    }
     private void setText(TextView view, int resId, String text) {
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
@@ -1784,19 +1811,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         duration = mPlayers.getDuration();
         if (duration > 1000 * 60 * 5) {
             float progressf = (float) current * 100 / duration ;
-            String type;
             int episodePos = mEpisodeAdapter.getPosition() + 1;
-            int episodeSize = mEpisodeAdapter.getItemCount();
-            if (episodeSize > 2) type = "show"; else type = "movie";
+
             switch (scrobbleType) {
                 case "stop":
-                    Trakt.scrobbleStop(mBinding.name.getText().toString(), type, mYear, episodePos, progressf);
+                    Trakt.scrobbleStop(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf);
                     break;
                 case "start":
-                    Trakt.scrobbleStart(mBinding.name.getText().toString(), type, mYear, episodePos, progressf);
+                    Trakt.scrobbleStart(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf);
                     break;
                 case "pause":
-                    Trakt.scrobblePause(mBinding.name.getText().toString(), type, mYear, episodePos, progressf);
+                    Trakt.scrobblePause(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf);
                     break;
                 default:
             }

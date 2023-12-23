@@ -149,6 +149,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private Clock mClock;
     private View mFocus1;
     private View mFocus2;
+    private Vod currentVod;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -198,6 +199,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean clear, boolean cast, boolean collect) {
+        start(activity, key, id, name, pic, mark, null, null, clear, false, false);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, String mark, String mediaType, String tmdbId, boolean clear, boolean cast, boolean collect) {
         Intent intent = new Intent(activity, VideoActivity.class);
         if (clear) intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra("collect", collect);
@@ -207,7 +212,19 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         intent.putExtra("pic", pic);
         intent.putExtra("key", key);
         intent.putExtra("id", id);
+        intent.putExtra("tmdb_id", tmdbId);
+        intent.putExtra("media_type", mediaType);
         activity.startActivityForResult(intent, 1000);
+    }
+
+    private String getTMDBId() {
+        return Objects.toString(getIntent().getStringExtra("tmdb_id"), "");
+    }
+
+    private String getMediaType() {
+        String type = Objects.toString(getIntent().getStringExtra("media_type"),"");
+        if (type.isEmpty() && !getCurrentVod().getVodMediaType().isEmpty()) type = getCurrentVod().getVodMediaType();
+        return type;
     }
 
     private boolean isCast() {
@@ -509,6 +526,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setDetail(Vod item) {
+        setCurrentVod(item);
         mBinding.progressLayout.showContent();
         mBinding.video.setTag(item.getVodPic(getPic()));
         mBinding.name.setText(item.getVodName(getName()));
@@ -529,6 +547,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkHistory(item);
         checkFlag(item);
         checkKeep();
+    }
+
+    private void setCurrentVod(Vod item) {
+        this.currentVod = item;
+    }
+    private Vod getCurrentVod() {
+        return currentVod;
     }
 
     private int getMaxLines() {
@@ -1608,13 +1633,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             if (episodeSize > 2) type = "show"; else type = "movie";
             switch (scrobbleType) {
                 case "stop":
-                    Trakt.scrobbleStop(mBinding.name.getText().toString(), type, mBinding.year.getText().toString(), episodePos, progressf);
+                    Trakt.scrobbleStop(mBinding.name.getText().toString(), getMediaType(), mBinding.year.getText().toString(), getTMDBId(), episodePos, progressf);
                     break;
                 case "start":
-                    Trakt.scrobbleStart(mBinding.name.getText().toString(), type, mBinding.year.getText().toString(), episodePos, progressf);
+                    Trakt.scrobbleStart(mBinding.name.getText().toString(), getMediaType(), mBinding.year.getText().toString(), getTMDBId(), episodePos, progressf);
                     break;
                 case "pause":
-                    Trakt.scrobblePause(mBinding.name.getText().toString(), type, mBinding.year.getText().toString(), episodePos, progressf);
+                    Trakt.scrobblePause(mBinding.name.getText().toString(), getMediaType(), mBinding.year.getText().toString(), getTMDBId(), episodePos, progressf);
                     break;
                 default:
             }
