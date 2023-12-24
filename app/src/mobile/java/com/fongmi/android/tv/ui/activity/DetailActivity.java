@@ -286,7 +286,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         return isMovie() ? tmdbItem.optString("title") : tmdbItem.optString("name");
     }
     private void onClickTMDBLink() {
-        String url = "https://www.themoviedb.org/" + (isMovie() ? "movie" : "tv") + tmdbItem.optString("id");
+        String url = "https://www.themoviedb.org/" + (isMovie() ? "movie" : "tv") + "/" + tmdbItem.optString("id");
         openExternalLink(url);
     }
 
