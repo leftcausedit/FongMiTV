@@ -64,6 +64,7 @@ import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.ExoUtil;
@@ -98,14 +99,18 @@ import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -119,6 +124,10 @@ import java.util.regex.Matcher;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.IDisplay;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
+import okhttp3.Call;
+import okhttp3.Headers;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
 public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener, InfoDialog.Listener {
@@ -526,6 +535,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()).toString());
         setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
         setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
+        mBinding.traktItem.setText("Trakt：");
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(mBinding.other, item);
@@ -1812,19 +1822,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (duration > 1000 * 60 * 5) {
             float progressf = (float) current * 100 / duration ;
             int episodePos = mEpisodeAdapter.getPosition() + 1;
-
-            switch (scrobbleType) {
-                case "stop":
-                    Trakt.scrobbleStop(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf);
-                    break;
-                case "start":
-                    Trakt.scrobbleStart(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf);
-                    break;
-                case "pause":
-                    Trakt.scrobblePause(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf);
-                    break;
-                default:
-            }
+            Trakt.toScrobble(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf, scrobbleType, new Callback() {
+                @Override
+                public void success(JSONObject result) {
+                    updateTraktText(result);
+                }
+            });
 //                Toast.makeText(App.get(), "ondestroyScrobble: " + progressf, Toast.LENGTH_LONG).show();
         }
     }
@@ -1837,6 +1840,42 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
     private void onScrobblePause() {
         onScrobble("pause");
+    }
+
+    private void updateTraktText(JSONObject result) {
+        try {
+            String type = result.optString("type");
+            String tmdbId = result.optJSONObject(type).optJSONObject("ids").optString("tmdb");
+
+            if (!type.equals("movie")) type = "tv";
+            String url = "https://api.themoviedb.org/3/" + type + "/" + tmdbId + "?language=zh-CN";
+            String finalType = type;
+            OkHttp.newCall(url, getTMDBHeaders()).enqueue(new Callback() {
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    ResponseBody body = response.body();
+                    String responseStr = body == null ? "" : body.string();
+                    try {
+                        JSONObject item = new JSONObject(responseStr);
+                        String msg;
+                        if (finalType.equals("movie")) msg = "Trakt：" + item.optString("title") + "-" + item.optString("release_date") + "-" + finalType;
+                        else msg = "Trakt：" + item.optString("name") + "-" + item.optString("first_air_date") + "-" + finalType;
+                        mBinding.traktItem.setText(msg);
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Headers getTMDBHeaders() {
+        return new Headers.Builder()
+                .add("accept", "application/json")
+                .add("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlNjU3ZTY3ZTU3N2FkMTliM2U0NDk2YTM5YmUxMWQwNSIsInN1YiI6IjYzZDU0YzkxMTJiMTBlMDA5M2U3OGZjOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.KPdFvId1UDpbqu9CvqYC2v4FrTodBII_9EOLlQUmTSU")
+                .build();
     }
 
 }

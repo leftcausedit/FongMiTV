@@ -2,6 +2,8 @@ package com.fongmi.android.tv.impl;
 
 import androidx.annotation.NonNull;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 import okhttp3.Call;
@@ -13,6 +15,9 @@ public class Callback implements okhttp3.Callback {
     }
 
     public void success(String result) {
+    }
+
+    public void success(JSONObject result) {
     }
 
     public void error(String msg) {

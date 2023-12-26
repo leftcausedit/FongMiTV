@@ -100,22 +100,23 @@ public class Trakt {
         void onError(Throwable throwable);
     }
 
-    public static void scrobbleStart(String title, String type, String year, String tmdbId, int episodePos, float progress) {
-        toScrobble(title, type, year, tmdbId, episodePos, progress, "start");
+    public static void scrobbleStart(String title, String type, String year, String tmdbId, int episodePos, float progress, Callback callback) {
+        toScrobble(title, type, year, tmdbId, episodePos, progress, "start", callback);
     }
-    public static void scrobblePause(String title, String type, String year, String tmdbId, int episodePos, float progress) {
-        toScrobble(title, type, year, tmdbId, episodePos, progress, "pause");
+    public static void scrobblePause(String title, String type, String year, String tmdbId, int episodePos, float progress, Callback callback) {
+        toScrobble(title, type, year, tmdbId, episodePos, progress, "pause", callback);
     }
-    public static void scrobbleStop(String title, String type, String year, String tmdbId, int episodePos, float progress) {
-        toScrobble(title, type, year, tmdbId, episodePos, progress, "stop");
+    public static void scrobbleStop(String title, String type, String year, String tmdbId, int episodePos, float progress, Callback callback) {
+        toScrobble(title, type, year, tmdbId, episodePos, progress, "stop", callback);
     }
 
-    public static void toScrobble(String title, String type, String year, String tmdbId, int episodePos, float progress, String scrobbleType) {
+    public static void toScrobble(String title, String type, String year, String tmdbId, int episodePos, float progress, String scrobbleType, Callback callback) {
 
         findItem(title, type, year, tmdbId, episodePos, new TraktCallback() {
             @Override
             public void onSuccess(JSONObject result) {
                 System.out.println("Trakt findItem: have item");
+                callback.success(result);
                 scrobble(result, progress, scrobbleType);
             }
 

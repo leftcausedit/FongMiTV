@@ -137,7 +137,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/director"
             android:layout_alignStart="@+id/name"
-            android:layout_alignBottom="@+id/video"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             android:ellipsize="end"
@@ -145,6 +144,21 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             tools:text="演員：FongMi" />
+
+        <TextView
+            android:id="@+id/trakt_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/actor"
+            android:layout_alignStart="@+id/name"
+            android:layout_alignBottom="@+id/video"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            tools:text="Trakt：FongMi" />
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeLayout"
