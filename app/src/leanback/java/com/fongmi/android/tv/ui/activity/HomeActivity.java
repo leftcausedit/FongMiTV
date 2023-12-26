@@ -480,7 +480,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     public void bringAppToFront(BaseActivity activity) {
         try {
             Intent intent = new Intent(activity, HomeActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             activity.startActivity(intent);
         } catch (Exception e) {
             e.printStackTrace();
