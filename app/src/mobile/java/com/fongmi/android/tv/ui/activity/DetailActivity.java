@@ -74,6 +74,8 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
     private Future<?> futureGetTraktData;
     private Future<String> futureGetDoubanId;
     private ExecutorService executor;
+    private Future<JSONObject> futureGetOMDBItem;
+    private Future<String> futureGetIMDBIdFromTMDB;
 
 
     public static void start(Activity activity, String key, String id, String name) {
@@ -227,6 +229,8 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
             executor.submit(this::getDataFromTMDB).get(Constant.TIMEOUT_VOD, TimeUnit.MILLISECONDS);
             futureGetTraktData = executor.submit(this::getDataFromTrakt);
             futureGetDoubanId = executor.submit(this::getDoubanIdFromIMDBID);
+            futureGetIMDBIdFromTMDB = executor.submit(this::getIMDBIdFromTMDB);
+            futureGetOMDBItem = executor.submit(this::getOMDBItem);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             e.printStackTrace();
         }
@@ -234,7 +238,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
 
     private void loadTMDBData() {
         ImgUtil.rect(isMovie() ? tmdbItem.optString("title") : tmdbItem.optString("name"), "https://image.tmdb.org/t/p/original" + tmdbItem.optString("backdrop_path"), mBinding.landscape);
-        mBinding.content.setText(tmdbItem.optString("overview"));
+        mBinding.contentText.setText(tmdbItem.optString("overview"));
         mBinding.type.setText(combineTMDBGenres(tmdbItem));
         mBinding.date.setText(isMovie() ? tmdbItem.optString("release_date") : tmdbItem.optString("first_air_date"));
         String rating = String.format(Locale.CHINA,"⭐ %.1f" ,tmdbItem.optDouble("vote_average"));
@@ -244,9 +248,19 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         mBinding.originalName.setText(isMovie() ? tmdbItem.optString("original_title") : tmdbItem.optString("original_name"));
 
         mBinding.playButton.setOnClickListener(view -> onClickPlayButton());
+        mBinding.imdbLink.setOnClickListener(view -> onClickIMDBLink());
         mBinding.tmdbLink.setOnClickListener(view -> onClickTMDBLink());
         mBinding.traktLink.setOnClickListener(view -> onClickTraktLink());
         mBinding.doubanLink.setOnClickListener(view -> onClickDoubanLink());
+
+        App.execute(() -> {
+            try {
+                mBinding.imdbRating.setText(getIMDBRatingFromOMDBItem(futureGetOMDBItem.get()));
+                mBinding.imdbVotes.setText(getIMDBVotesFromOMDBItem(futureGetOMDBItem.get()));
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private void onClickPlayButton() {
@@ -282,6 +296,14 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         }
     }
 
+    private void onClickIMDBLink() {
+        try {
+            openExternalLink(getIMDBLinkFromOMDBItem(futureGetOMDBItem.get()));
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private String getVodName() {
         return isMovie() ? tmdbItem.optString("title") : tmdbItem.optString("name");
     }
@@ -304,6 +326,43 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         return tmdbItem.has("title");
     }
 
+    private String getIMDBIdFromTMDB() {
+        String url = String.format("https://api.themoviedb.org/3/%s/%s/external_ids", getMediaType(), getId());
+        try {
+            ResponseBody body = OkHttp.newCall(url, getTMDBHeaders()).execute().body();
+            String rsp = body == null ? "" : body.string();
+            return new JSONObject(rsp).optString("imdb_id");
+        } catch (IOException | JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getIMDBRatingFromOMDBItem(JSONObject item) {
+        return item.optString("imdbRating");
+    }
+
+    private String getIMDBVotesFromOMDBItem(JSONObject item) {
+        return item.optString("imdbVotes");
+    }
+
+    private String getIMDBIdFromOMDBItem(JSONObject item) {
+        return item.optString("imdbID");
+    }
+
+    private String getIMDBLinkFromOMDBItem(JSONObject item) {
+        return "https://www.imdb.com/title/" + getIMDBIdFromOMDBItem(item);
+    }
+
+    private JSONObject getOMDBItem() {
+        try {
+            String url = "http://www.omdbapi.com/?apikey=53e26309&plot=full&i=" + futureGetIMDBIdFromTMDB.get();
+            String rsp = OkHttp.string(url);
+            return new JSONObject(rsp);
+        } catch (JSONException | ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return new JSONObject();
+        }
+    }
 
     private void openExternalLink(String externalLink) {
         Uri uri = Uri.parse(externalLink);
@@ -315,7 +374,8 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
     private void getDataFromTrakt() {
         String url = Trakt.apiUrl + "/search/tmdb/" + tmdbItem.optString("id") + "?type=" + (isMovie() ? "movie" : "show");
         try {
-            String response = OkHttp.newCall(url, Trakt.getTraktHeaders()).execute().body().string();
+            ResponseBody body = OkHttp.newCall(url, Trakt.getTraktHeaders()).execute().body();
+            String response = body == null ? "" : body.string();
             this.traktItem = new JSONArray(response).optJSONObject(0);
         } catch (IOException | JSONException e) {
             throw new RuntimeException(e);
@@ -324,7 +384,8 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
 
     private String getSlugFromTraktItemWithChild() {
         String type = traktItem.optString("type");
-        JSONObject item = Objects.requireNonNull(traktItem.optJSONObject(type)).optJSONObject("ids");
+        JSONObject typeItem = traktItem.optJSONObject(type);
+        JSONObject item = typeItem == null ? null : typeItem.optJSONObject("ids");
         return item != null && item.has("slug") ? item.optString("slug") : "";
     }
 
@@ -339,7 +400,8 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
             if (getMark().startsWith("🎬")) url = "https://api.themoviedb.org/3/movie/" + getId() + "?language=zh-CN";
             else if (getMark().startsWith("📺")) url = "https://api.themoviedb.org/3/tv/" + getId() + "?language=zh-CN";
             else {return;}
-            String response = OkHttp.newCall(url, getTMDBHeaders()).execute().body().string();
+            ResponseBody body = OkHttp.newCall(url, getTMDBHeaders()).execute().body();
+            String response = body == null ? "" : body.string();
             this.tmdbItem = new JSONObject(response);
         } catch (IOException | JSONException e) {
             e.printStackTrace();
@@ -350,7 +412,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         try {
             JSONArray genres = item.optJSONArray("genres");
             StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < genres.length(); i++) {
+            for (int i = 0; i < (genres == null ? 0 :genres.length()); i++) {
                 String genre = genres.optJSONObject(i).optString("name");
                 genre = genreTranslate(genre);
                 builder.append(genre).append(" ");

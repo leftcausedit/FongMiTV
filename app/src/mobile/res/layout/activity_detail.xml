@@ -176,21 +176,27 @@
                 app:iconSize="40dp"
                 android:backgroundTint="@color/material_dynamic_primary10"/>
 
-            <TextView
+            <androidx.core.widget.NestedScrollView
                 android:id="@+id/content"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="180dp"
                 android:layout_below="@+id/pic"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginEnd="16dp"
-                android:padding="20dp"
-                android:background="@drawable/shape_vod_content"
-                android:ellipsize="end"
-                android:lineSpacingExtra="4dp"
-                android:textColor="@color/white_80"
-                android:textSize="15sp"
-                tools:text="相傳22年前，十年，苦就要闖進去了，面前郤出現了一個黑團？ ！圍繞著“大秘寶one piece”而展開的海洋冒險故事現在開始！" />
+                android:background="@drawable/shape_vod_content">
+                <TextView
+                    android:id="@+id/content_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp"
+                    android:lineSpacingExtra="4dp"
+                    android:textColor="@color/white_80"
+                    android:textSize="15sp"
+                    tools:text="相傳22年前，十年，苦就要闖進去了，面前郤出現了一個黑團？ ！圍繞著“大秘寶one piece”而展開的海洋冒險故事現在開始！" />
+
+            </androidx.core.widget.NestedScrollView>
+
 
             <HorizontalScrollView
                 android:id="@+id/links"
@@ -215,13 +221,13 @@
                         app:iconSize="20dp"/>
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/tmdb_link"
+                        android:id="@+id/imdb_link"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_marginStart="8dp"
                         android:backgroundTint="@color/material_dynamic_primary10"
                         app:icon="@drawable/ic_fab_link"
-                        android:text="TMDB"
+                        android:text="IMDB"
                         android:textSize="15sp"
                         app:iconSize="20dp"/>
 
@@ -236,17 +242,113 @@
                         android:textSize="15sp"
                         app:iconSize="20dp"/>
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/tmdb_link"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
+                        android:backgroundTint="@color/material_dynamic_primary10"
+                        app:icon="@drawable/ic_fab_link"
+                        android:text="TMDB"
+                        android:textSize="15sp"
+                        app:iconSize="20dp"/>
+
                 </LinearLayout>
             </HorizontalScrollView>
 
+            <HorizontalScrollView
+                android:id="@+id/ratings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/links"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="110dp"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="20dp"
+                            android:text="豆瓣"
+                            android:textColor="@color/white_80"
+                            android:textSize="25sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="110dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="IMDB"
+                            android:textColor="@color/white_80"
+                            android:textSize="25sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/imdb_rating"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="9.0"
+                            android:textColor="@color/white_80"
+                            android:textSize="35sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/imdb_votes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/white_80"
+                            android:textSize="20dp"
+                            android:text="123456"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+<!--            <androidx.cardview.widget.CardView-->
+<!--                android:id="@+id/douban_card"-->
+<!--                android:layout_width="150dp"-->
+<!--                android:layout_height="200dp"-->
+<!--                android:layout_below="@id/links"-->
+<!--                android:layout_alignStart="@id/links"-->
+<!--                android:layout_marginTop="16dp"-->
+<!--                app:cardCornerRadius="12dp"-->
+<!--                app:cardBackgroundColor="@color/green_600"-->
+<!--                >-->
+<!--                -->
+<!--                <TextView-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="豆瓣"-->
+<!--                    android:singleLine="true"-->
+<!--                    android:textSize="25sp"-->
+<!--                    android:textColor="@color/white_80"-->
+<!--                    android:textStyle="bold"-->
+<!--                    android:padding="20dp"/>-->
+<!--                    -->
+<!--            </androidx.cardview.widget.CardView>-->
 
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/flag"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/links"
-                android:layout_marginTop="16dp"
+                android:layout_below="@+id/ratings"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="horizontal"
@@ -260,6 +362,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/flag"
+                android:layout_marginTop="8dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
