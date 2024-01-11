@@ -23,7 +23,7 @@ public class Sniffer {
 
     public static final Pattern CLICKER = Pattern.compile("\\[a=cr:(\\{.*?\\})\\/](.*?)\\[\\/a]");
     public static final Pattern URL = Pattern.compile("(http|https):[^\\s]+");
-    public static final Pattern HYPERLINK = Pattern.compile("\\[a=hyperlink](.*?)\\[\\/a]");
+    public static final Pattern HYPERLINK = Pattern.compile("\\[hyperlink=(.*?)](.*?)\\[/hyperlink]");
     public static final Pattern AI_PUSH = Pattern.compile("(http|https|rtmp|rtsp|smb|thunder|magnet|ed2k|mitv|tvbox-xg|jianpian|video):[^\\s]+", Pattern.MULTILINE);
     public static final Pattern SNIFFER = Pattern.compile("http((?!http).){12,}?\\.(m3u8|mp4|mkv|flv|mp3|m4a|aac)\\?.*|http((?!http).){12,}\\.(m3u8|mp4|mkv|flv|mp3|m4a|aac)|http((?!http).)*?video/tos*");
 

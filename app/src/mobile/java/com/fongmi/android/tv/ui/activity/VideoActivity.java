@@ -566,32 +566,40 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         Map<String, String> map = new HashMap<>();
         Matcher m = Sniffer.CLICKER.matcher(text);
         while (m.find()) {
-            String key = Trans.s2t(m.group(2)).trim();
+            String key = "ɤ " + Trans.s2t(m.group(2)).trim() + " ɤ";
             text = text.replace(m.group(), key);
             map.put(key, m.group(1));
         }
-        Matcher mHyperlink = Sniffer.URL.matcher(text);
+        Matcher mHyperlink = Sniffer.HYPERLINK.matcher(text);
         while (mHyperlink.find()) {
-            map.put(mHyperlink.group() + "<hyperlink>", mHyperlink.group());
+            String key = "🔗 " + Trans.s2t(mHyperlink.group(1)).trim();
+            text = text.replace(mHyperlink.group(), key);
+            map.put(key + "<hyperlink>", mHyperlink.group(2));
         }
 
         SpannableStringBuilder span = new SpannableStringBuilder(text);
+        int fromIndexH = 0;
+        int fromIndex = 0;
         for (String s : map.keySet()) {
             if (s.endsWith("<hyperlink>")) {
                 // 处理超链接，跳转到外部浏览器
                 String url = map.get(s);
-                int index = text.indexOf(url);
+                String key = s.replace("<hyperlink>", "");
+                int index = text.indexOf(key, fromIndexH);
+                fromIndexH = index + key.length();
                 span.setSpan(new URLSpan(url) {
                     @Override
                     public void onClick(View widget) {
                         // 处理点击事件，打开外部浏览器
                         Uri uri = Uri.parse(getURL());
                         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         widget.getContext().startActivity(intent);
                     }
-                }, index, index + url.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }, index, index + key.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
-                int index = text.indexOf(s);
+                int index = text.indexOf(s, fromIndex);
+                fromIndex = index + s.length();
                 Result result = Result.type(map.get(s));
                 span.setSpan(getClickSpan(result), index, index + s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
