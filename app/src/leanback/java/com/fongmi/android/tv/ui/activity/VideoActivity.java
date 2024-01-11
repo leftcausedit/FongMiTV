@@ -87,6 +87,7 @@ import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
+import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
 import com.permissionx.guolindev.PermissionX;
@@ -228,6 +229,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private String getMediaType() {
         String type = Objects.toString(getIntent().getStringExtra("media_type"),"");
         if (type.isEmpty() && !getCurrentVod().getVodMediaType().isEmpty()) type = getCurrentVod().getVodMediaType();
+        else type = mEpisodeAdapter.size() > 1 ? "tv" : "movie";
         return type;
     }
 
@@ -1627,6 +1629,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onScrobble(String scrobbleType) {
+        Spider spider = ApiConfig.get().getSpider(ApiConfig.get().getSite(getKey()));
+        if (!spider.enableTrakt()) return;
         long current, duration;
         current = mPlayers.getPosition();
         duration = mPlayers.getDuration();

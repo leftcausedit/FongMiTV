@@ -99,6 +99,7 @@ import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
+import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -535,7 +536,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()).toString());
         setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
         setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
-        mBinding.traktItem.setText("Trakt：");
+        setText(mBinding.traktItem, R.string.detail_trakt, "");
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(mBinding.other, item);
@@ -1816,6 +1817,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onScrobble(String scrobbleType) {
+        Spider spider = ApiConfig.get().getSpider(ApiConfig.get().getSite(getKey()));
+        if (!spider.enableTrakt()) return;
         long current, duration;
         current = mPlayers.getPosition();
         duration = mPlayers.getDuration();
@@ -1859,8 +1862,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                         JSONObject item = new JSONObject(responseStr);
                         String msg;
                         if (finalType.equals("movie")) msg = "Trakt：" + item.optString("title") + "-" + item.optString("release_date") + "-" + finalType;
-                        else msg = "Trakt：" + item.optString("name") + "-" + item.optString("first_air_date") + "-" + finalType;
-                        mBinding.traktItem.setText(msg);
+                        else msg = item.optString("name") + "-" + item.optString("first_air_date") + "-" + finalType;
+                        App.post(() -> setText(mBinding.traktItem, R.string.detail_trakt, msg));
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }

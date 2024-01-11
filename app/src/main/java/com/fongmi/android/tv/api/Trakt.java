@@ -98,6 +98,7 @@ public class Trakt {
     public interface TraktCallback {
         void onSuccess(JSONObject result);
         void onError(Throwable throwable);
+        default void sendResultBack(JSONObject result) {}
     }
 
     public static void scrobbleStart(String title, String type, String year, String tmdbId, int episodePos, float progress, Callback callback) {
@@ -116,13 +117,17 @@ public class Trakt {
             @Override
             public void onSuccess(JSONObject result) {
                 System.out.println("Trakt findItem: have item");
-                callback.success(result);
                 scrobble(result, progress, scrobbleType);
             }
 
             @Override
             public void onError(Throwable throwable) {
                 System.out.println("Trakt findItem: Result is null");
+            }
+
+            @Override
+            public void sendResultBack(JSONObject result) {
+                callback.success(result);
             }
         });
     }
@@ -162,6 +167,7 @@ public class Trakt {
         String patternString = "^(.+?)(?:第(.+?)季)?$";
 
         Map<String, String> chineseToArabic = new HashMap<>();
+        chineseToArabic.put("零", "0");
         chineseToArabic.put("一", "1");
         chineseToArabic.put("二", "2");
         chineseToArabic.put("三", "3");
@@ -181,20 +187,38 @@ public class Trakt {
 
         if (matcher.matches()) {
             String title = matcher.group(1);
-            String season = matcher.group(2) != null ? chineseToArabic.get(matcher.group(2)) : "1";
-            return new AbstractMap.SimpleEntry<>(title, season);
+
+            String matcher_group_2 = matcher.group(2);
+
+            if (matcher_group_2 != null) { // 若第 x 季，x 非空
+                String seasonStr = matcher_group_2.trim();
+                String season = chineseToArabic.get(seasonStr);
+
+                if (season == null) { // 若 x 不是中文，在 map 中找不到，此时 season = null
+                    try {
+                        int test = Integer.parseInt(seasonStr);
+                    } catch (NumberFormatException e) { // 若 x 不是数字，是奇怪的东西，则默认为第一季
+                        return new AbstractMap.SimpleEntry<>(title, "1");
+                    }
+                    season = seasonStr;
+                }
+
+                return new AbstractMap.SimpleEntry<>(title, season);
+            } else {
+                return new AbstractMap.SimpleEntry<>(title, "1");
+            }
         } else {
             return new AbstractMap.SimpleEntry<>(showTitle, "1");
         }
     }
 
-    public static void getTMDBResult(String title, String type, TraktCallback callback) {
+    public static void getTMDBResult(String title, String type, String year, TraktCallback callback) {
         type = parseTypeTMDB(type);
 //        if (type.equals("tv"))
         title = parseTitle(title).getKey();
 
         Request request = new Request.Builder()
-                .url("https://api.themoviedb.org/3/search/" + type + "?query=" + title + "&include_adult=false&language=zh-CN&page=1")
+                .url("https://api.themoviedb.org/3/search/" + type + "?query=" + title + "&include_adult=false&language=zh-CN&page=1&year=" + year)
                 .get()
                 .addHeader("accept", "application/json")
                 .addHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlNjU3ZTY3ZTU3N2FkMTliM2U0NDk2YTM5YmUxMWQwNSIsInN1YiI6IjYzZDU0YzkxMTJiMTBlMDA5M2U3OGZjOCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.KPdFvId1UDpbqu9CvqYC2v4FrTodBII_9EOLlQUmTSU")
@@ -254,13 +278,18 @@ public class Trakt {
                 @Override
                 public void onError(Throwable throwable) {
                 }
+
+                @Override
+                public void sendResultBack(JSONObject result) {
+                    callback.sendResultBack(result);
+                }
             });
         } else {
-            getTMDBResult(title, type, new TraktCallback() {
+            getTMDBResult(title, type, year, new TraktCallback() {
                 @Override
                 public void onSuccess(JSONObject result) {
                     String tmdbId = Integer.toString(result.optInt("id"));
-                    String type = result.optString("media_type");
+                    String type = result.has("title") ? "movie" : "tv";
                     getItemByTMDBId(tmdbId, type, title, episodePos, new TraktCallback() {
                         @Override
                         public void onSuccess(JSONObject result) {
@@ -269,6 +298,11 @@ public class Trakt {
 
                         @Override
                         public void onError(Throwable throwable) {
+                        }
+
+                        @Override
+                        public void sendResultBack(JSONObject result) {
+                            callback.sendResultBack(result);
                         }
                     });
                 }
@@ -306,6 +340,7 @@ public class Trakt {
                     }
                     if (result == null) return;
                     String finalType = result.optString("type", "");
+                    callback.sendResultBack(result);
                     if (finalType.equals("show")) {
                         String slug = result.optJSONObject(finalType).optJSONObject("ids").optString("slug");
                         getEpisodeItem(slug, finalSeason, episodePos, new TraktCallback() {
