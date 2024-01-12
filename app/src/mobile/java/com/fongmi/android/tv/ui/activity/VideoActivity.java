@@ -438,6 +438,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mPlayers.set(getExo(), getIjk());
         if (isPort() && ResUtil.isLand(this)) enterFullscreen();
         getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        getExo().getSubtitleView().setBottomPaddingFraction(0.04f);
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
@@ -1076,12 +1077,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        getExo().getSubtitleView().setBottomPaddingFraction(0.20f);
         checkPlayImg(mPlayers.isPlaying());
         setR1Callback();
     }
 
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
+        getExo().getSubtitleView().setBottomPaddingFraction(0.04f);
         App.removeCallbacks(mR1);
     }
 
