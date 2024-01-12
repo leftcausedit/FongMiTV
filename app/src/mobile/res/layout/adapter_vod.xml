@@ -45,37 +45,18 @@
         android:id="@+id/site"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_vod_site"
+        android:layout_alignParentStart="true"
+        android:layout_above="@id/remark"
         android:singleLine="true"
-        android:textColor="@color/white"
-        android:textSize="12sp"
+        android:textColor="@color/white_80"
+        android:textSize="9sp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="3dp"
         android:visibility="gone"
         tools:text="泥巴"
-        tools:visibility="visible" />
-
-<!--    <TextView-->
-<!--        android:id="@+id/remark"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_above="@+id/name"-->
-<!--        android:background="@drawable/shape_vod_remark"-->
-<!--        android:singleLine="true"-->
-<!--        android:textColor="@color/white"-->
-<!--        android:textSize="12sp"-->
-<!--        tools:text="1080p" />-->
-
-
-<!--    <TextView-->
-<!--        android:id="@+id/name"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_alignParentBottom="true"-->
-<!--        android:background="@drawable/shape_vod_name"-->
-<!--        android:gravity="center"-->
-<!--        android:singleLine="true"-->
-<!--        android:textColor="@color/white"-->
-<!--        android:textSize="14sp"-->
-<!--        tools:text="蜘蛛人" />-->
+        tools:visibility="visible"
+        tools:ignore="SmallSp" />
 
     <TextView
         android:id="@+id/name"
@@ -86,6 +67,7 @@
         android:layout_alignEnd="@id/image"
         android:background="@drawable/shape_vod_name"
         android:ellipsize="marquee"
+        android:gravity="center"
         android:padding="10dp"
         android:singleLine="true"
         android:textColor="@color/white_80"
@@ -101,7 +83,7 @@
         android:ellipsize="marquee"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
-        android:paddingBottom="10dp"
+        android:paddingBottom="0dp"
         android:singleLine="true"
         android:textColor="@color/white_80"
         android:textSize="9sp"
