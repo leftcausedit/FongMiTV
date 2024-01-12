@@ -223,8 +223,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         } else {
             if (item.isManga()) DetailActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodRemarks());
             else if (item.isPhoto()) PhotoActivity.start(getActivity(), mAdapter.getList(), mAdapter.getItemPosition(item));
-            else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), isFolder() ? item.getVodName() : null, false);
+            else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), (isFolder() && isList()) ? item.getVodName() : null, false);
         }
+    }
+
+    private boolean isList() {
+        return getKey().endsWith("_list");
     }
 
     @Override
