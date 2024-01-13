@@ -34,7 +34,9 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
+import androidx.media3.common.Format;
 import androidx.media3.common.Player;
+import androidx.media3.common.Tracks;
 import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
@@ -776,7 +778,28 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onInfo() {
-        InfoDialog.create(this).title(mBinding.control.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).show();
+        String video = "", audio = "";
+        if (mPlayers.isExo()) {
+            List<Tracks.Group> trackGroups = mPlayers.exo().getCurrentTracks().getGroups();
+            for (int i = 0; i < trackGroups.size(); i++) {
+                Tracks.Group trackGroup = trackGroups.get(i);
+                for (int j = 0; j < trackGroup.length; j++) {
+                    if (trackGroup.isTrackSelected(j)) {
+                        Format format = trackGroup.getMediaTrackGroup().getFormat(j);
+                        if (trackGroup.getType() == 2) {
+                            video = "video: " + format.sampleMimeType + " " + format.codecs + "\n";
+                        } else if (trackGroup.getType() == 1) {
+                            audio = "audio: " + format.sampleMimeType + (format.codecs == null ? " " : " " + format.codecs) + "\n";
+                        }
+                    }
+                }
+            }
+        }
+        String detail =
+                "resolution: " + getExo().getPlayer().getVideoSize().width + " x " + getExo().getPlayer().getVideoSize().height + "\n"
+                + video + audio
+                ;
+        InfoDialog.create(this).title(mBinding.control.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).detail(detail).show();
     }
 
     private void onFull() {

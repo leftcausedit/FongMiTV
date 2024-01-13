@@ -22,6 +22,7 @@ public class InfoDialog {
     private CharSequence title;
     private String header;
     private String url;
+    private String detail = "";
 
     public static InfoDialog create(Activity activity) {
         return new InfoDialog(activity);
@@ -49,6 +50,11 @@ public class InfoDialog {
         return this;
     }
 
+    public InfoDialog detail(String detail) {
+        this.detail = detail;
+        return this;
+    }
+
     public void show() {
         initDialog();
         initView();
@@ -66,6 +72,8 @@ public class InfoDialog {
         binding.title.setText(title);
         binding.header.setText(header);
         binding.header.setVisibility(header.isEmpty() ? View.GONE : View.VISIBLE);
+        binding.detail.setText(detail);
+        binding.detail.setVisibility(detail.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
     private void initEvent() {
