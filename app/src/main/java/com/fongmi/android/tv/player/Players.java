@@ -15,6 +15,7 @@ import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.SeekParameters;
 import androidx.media3.exoplayer.analytics.AnalyticsListener;
 import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
@@ -130,6 +131,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         exoPlayer.addAnalyticsListener(this);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
+        exoPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         view.setPlayer(exoPlayer);
     }
 
