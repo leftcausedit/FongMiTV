@@ -444,7 +444,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
-        setSubtitle(14);
+        setSubtitle((int) (0.7 * Setting.getSubtitle()));
     }
 
     private void setDanmuView() {
@@ -1046,7 +1046,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mDanmakuContext.setScaleTextSize(0.8f);
         setRotate(false, false);
         App.post(mR3, 2000);
-        setSubtitle(14);
+        setSubtitle((int) (0.7 * Setting.getSubtitle()));
         hideControl();
     }
 
@@ -1761,7 +1761,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             PlaybackService.start(mPlayers);
             mBinding.danmaku.hide();
             enterFullscreen();
-            setSubtitle(10);
+            setSubtitle((int) (0.5 * Setting.getSubtitle()));
             hideControl();
             hideSheet();
         } else {
