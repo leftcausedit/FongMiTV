@@ -581,15 +581,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         }
 
         SpannableStringBuilder span = new SpannableStringBuilder(text);
-        int fromIndexH = 0;
-        int fromIndex = 0;
         for (String s : map.keySet()) {
             if (s.endsWith("<hyperlink>")) {
                 // 处理超链接，跳转到外部浏览器
                 String url = map.get(s);
                 String key = s.replace("<hyperlink>", "");
-                int index = text.indexOf(key, fromIndexH);
-                fromIndexH = index + key.length();
+                int index = text.indexOf(key);
                 span.setSpan(new URLSpan(url) {
                     @Override
                     public void onClick(View widget) {
@@ -601,8 +598,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                     }
                 }, index, index + key.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
-                int index = text.indexOf(s, fromIndex);
-                fromIndex = index + s.length();
+                int index = text.indexOf(s);
                 Result result = Result.type(map.get(s));
                 span.setSpan(getClickSpan(result), index, index + s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
