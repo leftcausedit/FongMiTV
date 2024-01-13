@@ -33,6 +33,10 @@ public class Channel {
     private String name;
     @SerializedName("ua")
     private String ua;
+    @SerializedName("click")
+    private String click;
+    @SerializedName("origin")
+    private String origin;
     @SerializedName("referer")
     private String referer;
     @SerializedName("header")
@@ -126,6 +130,22 @@ public class Channel {
 
     public void setUa(String ua) {
         this.ua = ua;
+    }
+
+    public String getClick() {
+        return TextUtils.isEmpty(click) ? "" : click;
+    }
+
+    public void setClick(String click) {
+        this.click = click;
+    }
+
+    public String getOrigin() {
+        return TextUtils.isEmpty(origin) ? "" : origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
     }
 
     public String getReferer() {
@@ -275,6 +295,8 @@ public class Channel {
     public void live(Live live) {
         if (live.getUa().length() > 0 && getUa().isEmpty()) setUa(live.getUa());
         if (live.getHeader() != null && getHeader() == null) setHeader(live.getHeader());
+        if (live.getClick().length() > 0 && getClick().isEmpty()) setClick(live.getClick());
+        if (live.getOrigin().length() > 0 && getOrigin().isEmpty()) setOrigin(live.getOrigin());
         if (live.getReferer().length() > 0 && getReferer().isEmpty()) setReferer(live.getReferer());
         if (live.getPlayerType() != -1 && getPlayerType() == -1) setPlayerType(live.getPlayerType());
         if (!getEpg().startsWith("http")) setEpg(live.getEpg().replace("{name}", getName()).replace("{epg}", getEpg()));
@@ -288,6 +310,7 @@ public class Channel {
     public Map<String, String> getHeaders() {
         Map<String, String> headers = Json.toMap(getHeader());
         if (!getUa().isEmpty()) headers.put(HttpHeaders.USER_AGENT, getUa());
+        if (!getOrigin().isEmpty()) headers.put(HttpHeaders.ORIGIN, getOrigin());
         if (!getReferer().isEmpty()) headers.put(HttpHeaders.REFERER, getReferer());
         return headers;
     }
@@ -297,7 +320,9 @@ public class Channel {
         setReferer(item.getReferer());
         setHeader(item.getHeader());
         setNumber(item.getNumber());
+        setOrigin(item.getOrigin());
         setParse(item.getParse());
+        setClick(item.getClick());
         setLogo(item.getLogo());
         setName(item.getName());
         setUrls(item.getUrls());
@@ -309,6 +334,7 @@ public class Channel {
 
     public Result result() {
         Result result = new Result();
+        result.setClick(getClick());
         result.setUrl(Url.create().add(getUrl()));
         result.setHeader(Json.toObject(getHeaders()));
         return result;

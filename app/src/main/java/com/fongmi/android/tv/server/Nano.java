@@ -2,15 +2,15 @@ package com.fongmi.android.tv.server;
 
 import android.util.Base64;
 
-import com.fongmi.android.tv.api.ApiConfig;
-import com.fongmi.android.tv.api.LiveConfig;
+import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.server.process.Action;
 import com.fongmi.android.tv.server.process.Cache;
 import com.fongmi.android.tv.server.process.Local;
 import com.fongmi.android.tv.server.process.Process;
 import com.fongmi.android.tv.utils.M3U8;
-import com.github.catvod.Init;
+import com.github.catvod.utils.Asset;
 import com.google.common.net.HttpHeaders;
 
 import java.io.ByteArrayInputStream;
@@ -110,7 +110,7 @@ public class Nano extends NanoHTTPD {
         try {
             Map<String, String> params = session.getParms();
             params.putAll(session.getHeaders());
-            Object[] rs = ApiConfig.get().proxyLocal(params);
+            Object[] rs = VodConfig.get().proxyLocal(params);
             return rs[0] instanceof Response ? (Response) rs[0] : newChunkedResponse(Response.Status.lookup((Integer) rs[0]), (String) rs[1], (InputStream) rs[2]);
         } catch (Exception e) {
             return error(e.getMessage());
@@ -120,7 +120,7 @@ public class Nano extends NanoHTTPD {
     private Response getAssets(String path) {
         try {
             if (path.isEmpty()) path = "index.html";
-            InputStream is = Init.context().getAssets().open(path);
+            InputStream is = Asset.open(path);
             return newFixedLengthResponse(Response.Status.OK, getMimeTypeForFile(path), is, is.available());
         } catch (IOException e) {
             return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null);

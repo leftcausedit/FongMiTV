@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Entity(ignoredColumns = {"type", "group", "url", "logo", "epg", "ua", "referer", "timeout", "header", "playerType", "channels", "groups", "core", "activated", "width"})
+@Entity(ignoredColumns = {"type", "group", "url", "logo", "epg", "ua", "click", "origin", "referer", "timeout", "header", "playerType", "channels", "groups", "core", "activated", "width"})
 public class Live {
 
     @NonNull
@@ -44,6 +44,10 @@ public class Live {
     private String epg;
     @SerializedName("ua")
     private String ua;
+    @SerializedName("click")
+    private String click;
+    @SerializedName("origin")
+    private String origin;
     @SerializedName("referer")
     private String referer;
     @SerializedName("timeout")
@@ -133,8 +137,16 @@ public class Live {
         return TextUtils.isEmpty(ua) ? "" : ua;
     }
 
+    public String getOrigin() {
+        return TextUtils.isEmpty(origin) ? "" : origin;
+    }
+
     public String getReferer() {
         return TextUtils.isEmpty(referer) ? "" : referer;
+    }
+
+    public String getClick() {
+        return TextUtils.isEmpty(click) ? "" : click;
     }
 
     public Integer getTimeout() {
@@ -179,6 +191,10 @@ public class Live {
 
     public void setWidth(int width) {
         this.width = width;
+    }
+
+    public boolean isEmpty() {
+        return getName().isEmpty();
     }
 
     public Live check() {

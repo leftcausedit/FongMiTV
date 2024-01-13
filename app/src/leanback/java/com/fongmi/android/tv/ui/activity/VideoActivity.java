@@ -39,7 +39,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.api.ApiConfig;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.Trakt;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
@@ -141,6 +141,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private List<String> mBroken;
     private History mHistory;
     private Players mPlayers;
+    private boolean background;
     private boolean fullscreen;
     private boolean initTrack;
     private boolean initAuto;
@@ -184,7 +185,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     public static void start(Activity activity, String id, String name, String pic) {
-        start(activity, ApiConfig.get().getHome().getKey(), id, name, pic);
+        start(activity, VodConfig.get().getHome().getKey(), id, name, pic);
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic) {
@@ -258,11 +259,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private String getHistoryKey() {
-        return getKey().concat(AppDatabase.SYMBOL).concat(getId()).concat(AppDatabase.SYMBOL) + ApiConfig.getCid();
+        return getKey().concat(AppDatabase.SYMBOL).concat(getId()).concat(AppDatabase.SYMBOL) + VodConfig.getCid();
     }
 
     private Site getSite() {
-        return ApiConfig.get().getSite(getKey());
+        return VodConfig.get().getSite(getKey());
     }
 
     private Flag getFlag() {
@@ -323,6 +324,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mR1 = this::hideControl;
         mR2 = this::setTraffic;
         mR3 = this::showEmpty;
+        setBackground(false);
         setRecyclerView();
         setVideoView();
         setDanmuView();
@@ -410,7 +412,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.parse.setHorizontalSpacing(ResUtil.dp2px(8));
         mBinding.control.parse.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.control.parse.setAdapter(new ItemBridgeAdapter(mParseAdapter = new ArrayObjectAdapter(new ParsePresenter(this::setParseActivated))));
-        mParseAdapter.setItems(ApiConfig.get().getParses(), null);
+        mParseAdapter.setItems(VodConfig.get().getParses(), null);
     }
 
     private void setVideoView() {
@@ -500,7 +502,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setPlayer(Result result) {
         result.getUrl().set(mQualityAdapter.getPosition());
-        setUseParse(ApiConfig.hasParse() && ((result.getPlayUrl().isEmpty() && ApiConfig.get().getFlags().contains(result.getFlag())) || result.getJx() == 1));
+        setUseParse(VodConfig.hasParse() && ((result.getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(result.getFlag())) || result.getJx() == 1));
         mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
         mBinding.control.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
         setQualityVisible(result.getUrl().isMulti());
@@ -677,7 +679,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setParseActivated(Parse item) {
-        ApiConfig.get().setParse(item);
+        VodConfig.get().setParse(item);
         notifyItemChanged(mBinding.control.parse, mParseAdapter);
         onRefresh();
     }
@@ -913,11 +915,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (mPlayers.isEmpty()) return false;
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.putExtra("return_result", true);
         intent.putExtra("headers", mPlayers.getHeaderArray());
         intent.putExtra("position", (int) mPlayers.getPosition());
         intent.putExtra("title", mBinding.widget.title.getText());
-        intent.setDataAndType(Uri.parse(mPlayers.getUrl()), "video/*");
+        intent.setDataAndType(mPlayers.getUri(), "video/*");
         startActivityForResult(Util.getChooser(intent), 1001);
         return true;
     }
@@ -1078,7 +1081,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         boolean empty = item.getVodFlags().isEmpty();
         mBinding.flag.setVisibility(empty ? View.GONE : View.VISIBLE);
         if (empty) {
-            ErrorEvent.episode();
+            ErrorEvent.flag();
         } else {
             setFlagActivated(mHistory.getFlag());
             if (mHistory.isRevSort()) reverseEpisode(true);
@@ -1102,7 +1105,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private History createHistory(Vod item) {
         History history = new History();
         history.setKey(getHistoryKey());
-        history.setCid(ApiConfig.getCid());
+        history.setCid(VodConfig.getCid());
         history.setVodPic(item.getVodPic());
         history.setVodName(item.getVodName());
         history.findEpisode(item.getVodFlags());
@@ -1126,7 +1129,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void createKeep() {
         Keep keep = new Keep();
         keep.setKey(getHistoryKey());
-        keep.setCid(ApiConfig.getCid());
+        keep.setCid(VodConfig.getCid());
         keep.setSiteName(getSite().getName());
         keep.setVodPic(mBinding.video.getTag().toString());
         keep.setVodName(mBinding.name.getText().toString());
@@ -1154,20 +1157,21 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())){
+        if (isBackground()) return;
+        if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
             onKeyCenter();
         } else if (ActionEvent.NEXT.equals(event.getAction())) {
             mBinding.control.next.performClick(); // listener -> checkNext
         } else if (ActionEvent.PREV.equals(event.getAction())) {
             mBinding.control.prev.performClick(); // listener -> checkPrev
         } else if (ActionEvent.STOP.equals(event.getAction())) {
-            //onScrobbleStop();
             finish();
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
+        if (isBackground()) return;
         if (event.getType() == RefreshEvent.Type.DETAIL) getDetail();
         else if (event.getType() == RefreshEvent.Type.PLAYER) onRefresh();
         else if (event.getType() == RefreshEvent.Type.DANMAKU) checkDanmu(event.getPath());
@@ -1176,6 +1180,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
+        if (isBackground()) return;
         switch (event.getState()) {
             case 0:
                 setPosition();
@@ -1247,12 +1252,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
+        if (isBackground()) return;
         if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else onRefresh();
     }
 
     private void checkError(ErrorEvent event) {
-        if (getSite().getPlayerType() == -1 && event.isFormat() && event.getRetry() > 0 && getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
+        if (getSite().getPlayerType() == -1 && event.isUrl() && event.getRetry() > 0 && getToggleCount() < 2 && mPlayers.getPlayer() != Players.SYS) {
             toggleCount++;
             nextPlayer();
         } else {
@@ -1291,7 +1297,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void initParse() {
         if (mParseAdapter.size() == 0) return;
-        ApiConfig.get().setParse((Parse) mParseAdapter.get(0));
+        VodConfig.get().setParse((Parse) mParseAdapter.get(0));
         notifyItemChanged(mBinding.control.parse, mParseAdapter);
     }
 
@@ -1323,7 +1329,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mQuickAdapter.clear();
         List<Site> sites = new ArrayList<>();
         mExecutor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
-        for (Site site : ApiConfig.get().getSites()) if (isPass(site)) sites.add(site);
+        for (Site site : VodConfig.get().getSites()) if (isPass(site)) sites.add(site);
         for (Site site : sites) mExecutor.execute(() -> search(site, keyword));
     }
 
@@ -1396,6 +1402,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void onPlay() {
         mPlayers.play();
         hideCenter();
+    }
+
+    public boolean isBackground() {
+        return background;
+    }
+
+    public void setBackground(boolean background) {
+        this.background = background;
     }
 
     private boolean isFullscreen() {
@@ -1591,6 +1605,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onResume() {
         super.onResume();
+        setBackground(false);
         mClock.start();
         onPlay();
     }
@@ -1598,6 +1613,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onPause() {
         super.onPause();
+        setBackground(true);
         onPaused(false);
         mClock.stop();
     }
