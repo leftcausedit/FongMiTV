@@ -89,9 +89,28 @@ public class Flag implements Parcelable {
     public void createEpisode(String data) {
         String[] urls = data.contains("#") ? data.split("#") : new String[]{data};
         for (int i = 0; i < urls.length; i++) {
-            String[] split = urls[i].split("\\$");
-            String number = String.format(Locale.getDefault(), "%02d", i + 1);
-            Episode episode = split.length > 1 ? Episode.create(split[0].isEmpty() ? number : split[0].trim(), split[1]) : Episode.create(number, urls[i]);
+            int index = urls[i].indexOf("^^"), order;
+            String name_url;
+            if (index != -1 && index < urls[i].indexOf("$")) {
+                try {
+                    order = Integer.parseInt(urls[i].split("\\^\\^")[0]);
+                } catch (Exception e) {
+                    order = -1;
+                    e.printStackTrace();
+                }
+                name_url = urls[i].split("\\^\\^")[1];
+            } else {
+                order = -1;
+                name_url = urls[i];
+            }
+
+
+            String[] split = name_url.split("\\$");
+//            String number = String.format(Locale.getDefault(), "%02d", i + 1);
+            int number = i + 1;
+            Episode episode = split.length > 1 ?
+                    Episode.create(split[0].isEmpty() ? Integer.toString(number) : split[0].trim(), split[1]).index(order == -1 ? number : order) :
+                    Episode.create(Integer.toString(number), urls[i]).index(order == -1 ? number : order);
             if (!getEpisodes().contains(episode)) getEpisodes().add(episode);
         }
     }
