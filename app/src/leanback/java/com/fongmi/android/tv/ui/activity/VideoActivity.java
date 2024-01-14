@@ -1666,7 +1666,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onScrobble(String scrobbleType) {
-        Spider spider = ApiConfig.get().getSpider(ApiConfig.get().getSite(getKey()));
+        Spider spider = VodConfig.get().getSpider(VodConfig.get().getSite(getKey()));
         if (!spider.enableTrakt()) return;
         long current, duration;
         current = mPlayers.getPosition();
