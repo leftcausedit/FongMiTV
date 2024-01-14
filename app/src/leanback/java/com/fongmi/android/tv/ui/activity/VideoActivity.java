@@ -1674,7 +1674,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (duration > 1000 * 60 * 5) {
             float progressf = (float) current * 100 / duration ;
             String type;
-            int episodePos = getEpisodePosition() + 1;
+//            int episodePos = getEpisodePosition() + 1;
+            int episodePos = getEpisode().getIndex();
             int episodeSize = mEpisodeAdapter.size();
             Trakt.toScrobble(mBinding.name.getText().toString(), getMediaType(), mBinding.year.getText().toString(), getTMDBId(), episodePos, progressf, scrobbleType, new Callback() {
                 @Override
