@@ -70,6 +70,14 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
         updateProgress();
     }
 
+    public void setPosition(long positionMs) {
+        timeBar.setPosition(positionMs);
+    }
+
+    public void setDuration(long durationMs) {
+        timeBar.setDuration(durationMs);
+    }
+
     public void start() {
         removeCallbacks(runnable);
         post(runnable);

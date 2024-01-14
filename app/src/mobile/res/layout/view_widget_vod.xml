@@ -61,7 +61,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="44dp"
         android:background="@drawable/shape_widget"
         android:gravity="center"
         android:orientation="horizontal"
@@ -149,6 +149,21 @@
             app:trackColor="@color/grey_500" />
 
     </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.fongmi.android.tv.ui.custom.CustomSeekView
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"/>
+    </RelativeLayout>
+
 
     <ImageView
         android:id="@+id/preview"

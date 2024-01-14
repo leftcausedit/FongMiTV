@@ -403,6 +403,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.action.getRoot().setOnTouchListener(this::onActionTouch);
         mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
         mBinding.control.seek.setListener(mPlayers);
+        mBinding.widget.seekBar.setListener(mPlayers);
     }
 
     private void setRecyclerView() {
@@ -1594,14 +1595,26 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     public void setRotate(boolean rotate, boolean fullscreen) {
         this.rotate = rotate;
         setFullscreen(fullscreen);
-        if (!fullscreen || rotate) noPadding(mBinding.control.getRoot());
-        if (fullscreen && !rotate) setPadding(mBinding.control.getRoot());
+        if (!fullscreen || rotate) {
+            noPadding(mBinding.control.getRoot());
+            noPadding(mBinding.widget.seekBar);
+        }
+        if (fullscreen && !rotate) {
+            setPadding(mBinding.control.getRoot());
+            setPadding(mBinding.widget.seekBar);
+        }
     }
 
     public void setRotate(boolean rotate) {
         this.rotate = rotate;
-        if (fullscreen && rotate) noPadding(mBinding.control.getRoot());
-        if (fullscreen && !rotate) setPadding(mBinding.control.getRoot());
+        if (fullscreen && rotate) {
+            noPadding(mBinding.control.getRoot());
+            noPadding(mBinding.widget.seekBar);
+        }
+        if (fullscreen && !rotate) {
+            setPadding(mBinding.control.getRoot());
+            noPadding(mBinding.widget.seekBar);
+        }
     }
 
     public boolean isStop() {
@@ -1698,16 +1711,22 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onSeek(int time) {
+        onPaused();
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         mBinding.widget.seek.setVisibility(View.VISIBLE);
         String finaltime = mPlayers.getPositionTime(time) + " [" + (time > 0 ? "+" : "") + mPlayers.stringToTime(time) + "]";
         mBinding.widget.time.setText(finaltime);
+        mBinding.control.seek.setPosition(mPlayers.getPosition() + time);
+        if (mBinding.control.getRoot().getVisibility() != View.VISIBLE) mBinding.widget.seekBar.setVisibility(View.VISIBLE);
+        mBinding.widget.seekBar.setDuration(mPlayers.getDuration());
+        mBinding.widget.seekBar.setPosition(mPlayers.getPosition() + time);
         hideProgress();
     }
 
     @Override
     public void onSeekEnd(int time) {
         mBinding.widget.seek.setVisibility(View.GONE);
+        mBinding.widget.seekBar.setVisibility(View.GONE);
         mPlayers.seekTo(time);
         showProgress();
         onPlay();
