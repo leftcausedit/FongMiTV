@@ -1554,7 +1554,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     public void onSpeedUp() {
         if (!mPlayers.isPlaying()) return;
-        mBinding.control.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
+        mBinding.control.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 2 ? 2 : (mPlayers.getSpeed() < 3 ? 3 : 5)));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
     }
