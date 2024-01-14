@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -499,7 +500,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private float getExoHeight() {
-        return getExo().getWidth() / 2340f * 1080;
+        Point p = new Point();
+        getWindowManager().getDefaultDisplay().getRealSize(p);
+        return getExo().getWidth() / (float) Math.max(p.x, p.y) * Math.min(p.x, p.y);
     }
 
     private void setViewModel() {
