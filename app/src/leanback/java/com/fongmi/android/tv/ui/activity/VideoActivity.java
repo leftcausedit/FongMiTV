@@ -549,7 +549,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
         setText(mBinding.content, R.string.detail_content, Html.fromHtml(item.getVodContent()).toString());
         setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
-        mBinding.traktItem.setText("Trakt：");
+        setText(mBinding.traktItem, R.string.detail_trakt, "");
         mFlagAdapter.setItems(item.getVodFlags(), null);
         mBinding.content.setMaxLines(getMaxLines());
         mBinding.video.requestFocus();
@@ -1712,8 +1712,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                         JSONObject item = new JSONObject(responseStr);
                         String msg;
                         if (finalType.equals("movie")) msg = "Trakt：" + item.optString("title") + "-" + item.optString("release_date") + "-" + finalType;
-                        else msg = "Trakt：" + item.optString("name") + "-" + item.optString("first_air_date") + "-" + finalType;
-                        App.post(() -> mBinding.traktItem.setText(msg));
+                        else msg = item.optString("name") + "-" + item.optString("first_air_date") + "-" + finalType;
+                        App.post(() -> setText(mBinding.traktItem, R.string.detail_trakt, msg));
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
