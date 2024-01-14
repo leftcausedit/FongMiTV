@@ -809,7 +809,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onInfo() {
-        String video = "", audio = "";
+        String video = "", audio = "", detail = "";
         if (mPlayers.isExo()) {
             List<Tracks.Group> trackGroups = mPlayers.exo().getCurrentTracks().getGroups();
             for (int i = 0; i < trackGroups.size(); i++) {
@@ -825,11 +825,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                     }
                 }
             }
+
+            detail =
+                    "resolution: " + getExo().getPlayer().getVideoSize().width + " x " + getExo().getPlayer().getVideoSize().height + "\n"
+                            + video + audio
+            ;
         }
-        String detail =
-                "resolution: " + getExo().getPlayer().getVideoSize().width + " x " + getExo().getPlayer().getVideoSize().height + "\n"
-                + video + audio
-                ;
+
         InfoDialog.create(this).title(mBinding.control.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).detail(detail).show();
     }
 
