@@ -289,10 +289,14 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
             // getVideo(item.getVodId(), "1");
             VodActivity.start(getActivity(), getKey(), Result.folder(item));
         } else {
-            if (!isFolder()) VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+            if (!isFolder() || !isList()) VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
             else if (item.isPhoto()) PhotoActivity.start(getActivity(), vodList, vodList.indexOf(item));
             else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodName());
         }
+    }
+
+    private boolean isList() {
+        return getKey().endsWith("_list");
     }
 
     @Override
