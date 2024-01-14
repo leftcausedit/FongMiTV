@@ -33,7 +33,7 @@ public class Parser extends BaseDanmakuParser {
 
     public Parser(String path) {
         this.danmu = Danmu.fromXml(getContent(path));
-        this.danmuSizeTimes = 1.0f + (Setting.getDanmuSize() * 0.2f);
+        this.danmuSizeTimes = (1.0f + (Setting.getDanmuSize() * 0.2f)) * 0.9f;
     }
 
     private String getContent(String path) {
