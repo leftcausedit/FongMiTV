@@ -1098,7 +1098,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void showProgress() {
         App.post(() -> {
-            if (!mPlayers.isPlaying()) {
+            if (mPlayers.exo().getPlaybackState() == Player.STATE_BUFFERING || mPlayers.isIjk()) {
                 mBinding.widget.progress.setVisibility(View.VISIBLE);
                 mBinding.widget.progress.setVisibility(View.VISIBLE);
                 App.post(mR2, 0);
