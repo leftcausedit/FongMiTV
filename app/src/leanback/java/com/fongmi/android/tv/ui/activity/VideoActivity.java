@@ -966,9 +966,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showProgress() {
-        mBinding.widget.progress.setVisibility(View.VISIBLE);
-        App.post(mR2, 0);
-        hideError();
+        App.post(() -> {
+            if (mPlayers.exo().getPlaybackState() == Player.STATE_BUFFERING || mPlayers.isIjk()) {
+                mBinding.widget.progress.setVisibility(View.VISIBLE);
+                App.post(mR2, 0);
+                hideError();
+            }
+        }, 500);
     }
 
     private void hideProgress() {
