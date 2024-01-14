@@ -168,6 +168,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void setKeyword(String text) {
+        text = text.substring(0, Math.min(text.length() - 1, 255));
         mBinding.keyword.setText(text);
         mBinding.keyword.setSelection(text.length());
     }
