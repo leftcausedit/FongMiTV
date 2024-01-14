@@ -989,6 +989,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showInfo() {
+        updateCenterSeekBar();
         mBinding.widget.center.setVisibility(View.VISIBLE);
         mBinding.widget.info.setVisibility(View.VISIBLE);
     }
@@ -996,6 +997,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void hideInfo() {
         mBinding.widget.center.setVisibility(View.GONE);
         mBinding.widget.info.setVisibility(View.GONE);
+    }
+
+    private void updateCenterSeekBar() {
+        updateCenterSeekBar(0);
+    }
+
+    private  void updateCenterSeekBar(int time) {
+        mBinding.widget.centerSeekBar.setDuration(mPlayers.getDuration());
+        mBinding.widget.centerSeekBar.setPosition(mPlayers.getPosition() + time);
     }
 
     private void showControl(View view) {
@@ -1521,6 +1531,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(time));
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
+        updateCenterSeekBar(time);
         mBinding.widget.center.setVisibility(View.VISIBLE);
         hideProgress();
     }
