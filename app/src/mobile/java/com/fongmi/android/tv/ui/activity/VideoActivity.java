@@ -442,7 +442,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mPlayers.set(getExo(), getIjk());
         if (isPort() && ResUtil.isLand(this)) enterFullscreen();
         getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
-        getExo().getSubtitleView().setBottomPaddingFraction(0.04f);
+        setSubtitleFraction();
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
@@ -469,7 +469,34 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setScale(int scale) {
         getExo().setResizeMode(scale);
         getIjk().setResizeMode(scale);
+        getExo().post(this::setSubtitleFraction);
         mBinding.control.action.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
+    }
+
+    private float getSubtitleFractionValue() {
+        float value = (!isFullscreen()) ?
+                (0.04f + (mBinding.control.getRoot().getVisibility() == View.VISIBLE ? 0.06f : 0.0f)) :
+                (getBaseBottomPaddingFraction() +
+                    getAdditionalBottomPaddingFractionTimes() *
+                    (0.04f + (mBinding.control.getRoot().getVisibility() == View.VISIBLE ? 0.16f : 0.0f)));
+        return value;
+    }
+
+    private void setSubtitleFraction() {
+            getExo().getSubtitleView().setBottomPaddingFraction(getSubtitleFractionValue());
+    }
+
+    private float getBaseBottomPaddingFraction() {
+        return (getExo().getSubtitleView().getHeight() - getExoHeight()) / (float) 2 /
+                getExo().getSubtitleView().getHeight();
+    }
+
+    private float getAdditionalBottomPaddingFractionTimes() {
+        return (getExoHeight() / (float) getExo().getSubtitleView().getHeight());
+    }
+
+    private float getExoHeight() {
+        return getExo().getWidth() / 2340f * 1080;
     }
 
     private void setViewModel() {
@@ -1105,14 +1132,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
-        getExo().getSubtitleView().setBottomPaddingFraction(0.20f);
+        setSubtitleFraction();
         checkPlayImg(mPlayers.isPlaying());
         setR1Callback();
     }
 
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
-        getExo().getSubtitleView().setBottomPaddingFraction(0.04f);
+        setSubtitleFraction();
         App.removeCallbacks(mR1);
     }
 
@@ -1141,6 +1168,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setOrient() {
         if (isPort() && isAutoRotate()) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         if (isLand() && isAutoRotate()) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        setSubtitleFraction();
     }
 
     private void setR1Callback() {
