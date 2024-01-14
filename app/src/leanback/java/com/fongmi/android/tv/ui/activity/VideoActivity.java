@@ -1076,18 +1076,21 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void getPart(String source) {
+        source = source.split(" ")[0];
+        source = source.replaceAll("第.{1,2}季", "");
+        String finalSource = source;
         OkHttp.newCall("http://api.pullword.com/get.php?source=" + URLEncoder.encode(source.trim()) + "&param1=0&param2=0&json=1").enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 List<String> items = Part.get(response.body().string());
-                if (!items.contains(source)) items.add(0, source);
+                if (!items.contains(finalSource)) items.add(0, finalSource);
                 App.post(() -> mPartAdapter.setItems(items, null));
                 App.post(() -> mBinding.part.setVisibility(View.VISIBLE));
             }
 
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                List<String> items = List.of(source);
+                List<String> items = List.of(finalSource);
                 App.post(() -> mPartAdapter.setItems(items, null));
                 App.post(() -> mBinding.part.setVisibility(View.VISIBLE));
             }
