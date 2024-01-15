@@ -1008,6 +1008,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private  void updateCenterSeekBar(int time) {
+        mBinding.widget.centerSeekBar.hideScrubber(true);
         mBinding.widget.centerSeekBar.setDuration(mPlayers.getDuration());
         mBinding.widget.centerSeekBar.setPosition(mPlayers.getPosition() + time);
     }

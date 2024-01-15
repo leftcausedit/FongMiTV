@@ -135,8 +135,8 @@
             android:id="@+id/centerSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:scrubber_disabled_size="0dp"
-            app:scrubber_enabled_size="0dp" />
+            android:focusable="false"
+            app:bar_height="4dp"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
