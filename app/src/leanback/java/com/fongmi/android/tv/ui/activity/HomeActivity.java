@@ -56,6 +56,7 @@ import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.google.common.collect.Lists;
 import com.permissionx.guolindev.PermissionX;
@@ -124,7 +125,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void checkAction(Intent intent) {
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
-            VideoActivity.push(this, intent.getStringExtra(Intent.EXTRA_TEXT));
+            String text = intent.getStringExtra(Intent.EXTRA_TEXT);
+            if (Sniffer.AI_PUSH.matcher(text).find()) {
+                VideoActivity.push(this, text);
+            } else {
+                CollectActivity.start(this, text);
+            }
         } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
             if ("text/plain".equals(intent.getType()) || UrlUtil.path(intent.getData()).endsWith(".m3u")) {
                 loadLive("file:/" + FileChooser.getPathFromUri(this, intent.getData()));
