@@ -1377,6 +1377,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setSearch(Vod item) {
+        if (item.isFolder()) {
+            VodActivity.start(getActivity(), getKey(), Result.folder(item));
+            return;
+        }
         setAutoMode(false);
         getDetail(item);
     }

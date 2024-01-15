@@ -725,6 +725,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onItemClick(Vod item) {
+        if (item.isFolder()) {
+            FolderActivity.start(getActivity(), getKey(), Result.folder(item));
+            return;
+        }
         setAutoMode(false);
         getDetail(item);
     }
