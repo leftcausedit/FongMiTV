@@ -94,9 +94,20 @@ public abstract class BaseActivity extends AppCompatActivity {
             File file = FileUtil.getWall(Setting.getWall());
             if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(WallConfig.drawable(Drawable.createFromPath(file.getAbsolutePath())));
             else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+            setStatusBar();
         } catch (Exception e) {
             getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_1);
+            setStatusBar();
         }
+    }
+
+    private void setStatusBar() {
+        Bitmap backgroundBitmap = ((BitmapDrawable) getWindow().getDecorView().getBackground()).getBitmap();
+        Bitmap bitmap = Bitmap.createBitmap(backgroundBitmap, 0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight() / 6);
+        int averageColor = BitmapUtil.getBitmapAverageColor(bitmap, 1);
+        int color = Palette.from(bitmap).generate().getVibrantColor(averageColor);
+        int colorAlpha = ColorUtils.setAlpha(color,235);
+        getWindow().setStatusBarColor(colorAlpha);
     }
 
     private Resources hackResources(Resources resources) {

@@ -1,7 +1,9 @@
 package com.fongmi.android.tv.ui.base;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,12 +14,14 @@ import android.view.WindowManager;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.palette.graphics.Palette;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.utils.BitmapUtil;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
@@ -26,6 +30,8 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+
+import dev.utils.common.ColorUtils;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
@@ -111,9 +117,20 @@ public abstract class BaseActivity extends AppCompatActivity {
             File file = FileUtil.getWall(Setting.getWall());
             if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(WallConfig.drawable(Drawable.createFromPath(file.getAbsolutePath())));
             else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+            setStatusBar();
         } catch (Exception e) {
             getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_1);
+            setStatusBar();
         }
+    }
+
+    private void setStatusBar() {
+        Bitmap backgroundBitmap = ((BitmapDrawable) getWindow().getDecorView().getBackground()).getBitmap();
+        Bitmap bitmap = Bitmap.createBitmap(backgroundBitmap, 0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight() / 6);
+        int averageColor = BitmapUtil.getBitmapAverageColor(bitmap, 1);
+        int color = Palette.from(bitmap).generate().getLightVibrantColor(averageColor);
+        int colorAlpha = ColorUtils.setAlpha(color,235);
+        getWindow().setStatusBarColor(colorAlpha);
     }
 
     private void setTransparent(Activity activity) {

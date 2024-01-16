@@ -87,6 +87,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     @Override
     protected void initView() {
         EventBus.getDefault().register(this);
+        setAppBar();
         setRecyclerView();
         setViewModel();
         showProgress();
@@ -113,6 +114,10 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
                 setFabVisible(position);
             }
         });
+    }
+
+    private void setAppBar() {
+        mBinding.appBar.setBackgroundColor(getActivity().getWindow().getStatusBarColor());
     }
 
     private void setRecyclerView() {
@@ -252,6 +257,9 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
             case VIDEO:
             case SIZE:
                 homeContent();
+                break;
+            case WALL:
+                setAppBar();
                 break;
         }
     }

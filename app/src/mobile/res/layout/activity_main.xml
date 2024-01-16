@@ -11,6 +11,14 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/navigation" />
 
+    <com.github.mmin18.widget.RealtimeBlurView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/navigation"
+        android:layout_alignTop="@id/navigation"
+        app:realtimeOverlayColor="@color/transparent"
+        app:realtimeBlurRadius="50dp" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navigation"
         android:layout_width="match_parent"
