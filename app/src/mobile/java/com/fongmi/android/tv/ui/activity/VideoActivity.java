@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -26,7 +27,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
@@ -97,6 +97,7 @@ import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.BlurUtil;
 import com.fongmi.android.tv.utils.PiP;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
@@ -353,12 +354,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mR4 = this::showEmpty;
         mPiP = new PiP();
         setForeground(true);
+        setActivityBackground();
         setRecyclerView();
         setVideoView();
         setDanmuView();
         setViewModel();
         showProgress();
         checkId();
+    }
+
+
+    private void setActivityBackground() {
+        mBinding.progressLayout.setBackground(new BitmapDrawable(getResources(), BlurUtil.doBlur(((BitmapDrawable) this.getWindow().getDecorView().getBackground()).getBitmap(), 10, 20)));
     }
 
     @Override
