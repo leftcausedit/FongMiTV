@@ -5,6 +5,7 @@ import static com.fongmi.android.tv.utils.Util.substring;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
@@ -37,6 +38,7 @@ import com.fongmi.android.tv.ui.adapter.FlagAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.fongmi.android.tv.utils.BlurUtil;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.net.OkHttp;
@@ -146,9 +148,14 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         mBinding.progressLayout.showProgress();
+        setActivityBackground();
         setRecyclerView();
         setViewModel();
         getDetail();
+    }
+
+    private void setActivityBackground() {
+        mBinding.progressLayout.setBackground(new BitmapDrawable(getResources(),BlurUtil.doBlur(((BitmapDrawable) this.getWindow().getDecorView().getBackground()).getBitmap(), 10, 20)));
     }
 
     @Override
@@ -247,6 +254,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         mBinding.rating.setText(rating_hit);
         mBinding.originalName.setText(isMovie() ? tmdbItem.optString("original_title") : tmdbItem.optString("original_name"));
 
+        mBinding.searchButton.setOnClickListener(view -> onClickSearchButton());
         mBinding.playButton.setOnClickListener(view -> onClickPlayButton());
         mBinding.imdbLink.setOnClickListener(view -> onClickIMDBLink());
         mBinding.tmdbLink.setOnClickListener(view -> onClickTMDBLink());
@@ -261,6 +269,10 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    private void onClickSearchButton() {
+        CollectActivity.start(this, getVodName());
     }
 
     private void onClickPlayButton() {
@@ -281,7 +293,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
             String url = "https://movie.douban.com/j/subject_suggest?q=" + getIMDBIdFromTraktItemWithChild();
             JSONArray item= new JSONArray(OkHttp.string(url));
             return item.optJSONObject(0).optString("id");
-        } catch (ExecutionException | InterruptedException | JSONException e) {
+        } catch (Exception e) {
             return "";
         }
     }
@@ -292,7 +304,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
             String url = "https://movie.douban.com/subject/" + id;
             openExternalLink(url);
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
