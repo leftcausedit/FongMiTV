@@ -24,7 +24,8 @@
             android:focusable="false"
             android:text="@string/app_name"
             android:textColor="@color/white"
-            android:textSize="24sp" />
+            android:fontFamily="@font/poppins_bold"
+            android:textSize="28sp" />
 
         <TextView
             android:id="@+id/time"
@@ -33,6 +34,7 @@
             android:layout_gravity="end"
             android:textColor="@color/white"
             android:textSize="24sp"
+            android:fontFamily="@font/poppins"
             tools:text="07/25 09:20:00" />
 
     </FrameLayout>

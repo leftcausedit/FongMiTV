@@ -92,6 +92,7 @@ public class HistoryPresenter extends Presenter {
         History item = (History) object;
         ViewHolder holder = (ViewHolder) viewHolder;
         setClickListener(holder.view, item);
+        holder.binding.getRoot().setClipToOutline(false);
         holder.binding.name.setText(item.getVodName());
         holder.binding.site.setText(item.getSiteName());
         holder.binding.site.setVisibility(item.getSiteVisible());

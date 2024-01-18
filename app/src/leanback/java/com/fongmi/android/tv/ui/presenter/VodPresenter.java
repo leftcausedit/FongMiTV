@@ -54,6 +54,7 @@ public class VodPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object object) {
+        viewHolder.view.setClipToOutline(false);
         ((BaseVodHolder) viewHolder).initView((Vod) object);
     }
 

@@ -39,5 +39,6 @@ public class CustomRowPresenter extends ListRowPresenter {
         ViewHolder vh = (ViewHolder) holder;
         vh.getGridView().setFocusScrollStrategy(strategy);
         vh.getGridView().setHorizontalSpacing(ResUtil.dp2px(spacing));
+        vh.getGridView().setClipChildren(false);  // tested clipToOutLine, clipToPadding, clipChildren; this is to enable shadow of the RootView in viewHolder;
     }
 }

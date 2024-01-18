@@ -6,4 +6,7 @@
     android:layout_height="wrap_content"
     android:textColor="@color/white"
     android:textSize="24sp"
+    android:fontFamily="@font/poppins"
+    android:textStyle="bold"
+    android:letterSpacing="0.1"
     tools:text="@string/home_recommend" />
