@@ -47,6 +47,8 @@ import com.permissionx.guolindev.PermissionX;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import dev.utils.common.ColorUtils;
+
 public class MainActivity extends BaseActivity implements NavigationBarView.OnItemSelectedListener {
 
     private ActivityMainBinding mBinding;
@@ -66,6 +68,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        setNavigationColor();
         initFragment(savedInstanceState);
         Updater.get().release().start();
         Server.get().start();
@@ -184,6 +187,13 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     public void onRefreshEvent(RefreshEvent event) {
         super.onRefreshEvent(event);
         if (event.getType().equals(RefreshEvent.Type.CONFIG)) setNavigation();
+        if (event.getType().equals(RefreshEvent.Type.WALL)) setNavigationColor();
+    }
+
+    private void setNavigationColor() {
+        int color = getWindow().getStatusBarColor();
+        int colorAlpha = ColorUtils.setAlpha(color, 100);
+        mBinding.navigation.setBackgroundColor(colorAlpha);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

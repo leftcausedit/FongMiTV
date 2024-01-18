@@ -14,6 +14,7 @@ import android.view.WindowManager;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.palette.graphics.Palette;
 import androidx.viewbinding.ViewBinding;
 
@@ -22,6 +23,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.utils.BitmapUtil;
+import com.fongmi.android.tv.utils.BlurUtil;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
@@ -115,8 +117,20 @@ public abstract class BaseActivity extends AppCompatActivity {
         try {
             if (!customWall()) return;
             File file = FileUtil.getWall(Setting.getWall());
-            if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(WallConfig.drawable(Drawable.createFromPath(file.getAbsolutePath())));
-            else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+//            if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(WallConfig.drawable(Drawable.createFromPath(file.getAbsolutePath())));
+//            else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+
+            if (file.exists() && file.length() > 0) {
+                Drawable drawable = Drawable.createFromPath(file.getAbsolutePath());
+                Bitmap bitmap = BlurUtil.doBlur(((BitmapDrawable) drawable).getBitmap(), 10, 20);
+                getWindow().setBackgroundDrawable(WallConfig.drawable(new BitmapDrawable(getResources(), bitmap)));
+            }
+            else {
+                Drawable drawable = AppCompatResources.getDrawable(this, ResUtil.getDrawable(file.getName()));
+                Bitmap bitmap = BlurUtil.doBlur(((BitmapDrawable) drawable).getBitmap(), 5, 15);
+                getWindow().setBackgroundDrawable(new BitmapDrawable(getResources(), bitmap));
+            }
+
             setStatusBar();
         } catch (Exception e) {
             getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_1);
