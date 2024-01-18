@@ -3,6 +3,8 @@ package com.fongmi.android.tv.ui.base;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.view.View;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.palette.graphics.Palette;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +22,8 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.utils.BitmapUtil;
+import com.fongmi.android.tv.utils.BlurUtil;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
@@ -29,6 +34,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 
+import dev.utils.common.ColorUtils;
 import me.jessyan.autosize.AutoSizeCompat;
 
 public abstract class BaseActivity extends AppCompatActivity {
@@ -93,8 +99,19 @@ public abstract class BaseActivity extends AppCompatActivity {
         try {
             if (!customWall()) return;
             File file = FileUtil.getWall(Setting.getWall());
-            if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(WallConfig.drawable(Drawable.createFromPath(file.getAbsolutePath())));
-            else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+//            if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(WallConfig.drawable(Drawable.createFromPath(file.getAbsolutePath())));
+//            else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
+
+            if (file.exists() && file.length() > 0) {
+                Drawable drawable = Drawable.createFromPath(file.getAbsolutePath());
+                Bitmap bitmap = BlurUtil.doBlur(((BitmapDrawable) drawable).getBitmap(), 5, 15);
+                getWindow().setBackgroundDrawable(WallConfig.drawable(new BitmapDrawable(getResources(), bitmap)));
+            }
+            else {
+                Drawable drawable = AppCompatResources.getDrawable(this, ResUtil.getDrawable(file.getName()));
+                Bitmap bitmap = BlurUtil.doBlur(((BitmapDrawable) drawable).getBitmap(), 5, 15);
+                getWindow().setBackgroundDrawable(new BitmapDrawable(getResources(), bitmap));
+            }
             setStatusBar();
         } catch (Exception e) {
             getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_1);
