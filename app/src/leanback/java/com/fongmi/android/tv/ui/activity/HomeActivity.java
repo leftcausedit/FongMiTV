@@ -459,6 +459,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 getVideo();
                 getHistory(true);
                 break;
+            case WALL:
+                mAdapter.notifyArrayItemRangeChanged(0,1);
         }
     }
 
