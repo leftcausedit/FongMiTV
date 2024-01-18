@@ -19,6 +19,7 @@ public class Episode implements Parcelable {
     @SerializedName("index")
     private int index; // 第index集
 
+    private int index;
     private int number;
     private boolean activated;
     private boolean selected;
@@ -68,6 +69,14 @@ public class Episode implements Parcelable {
 
     public String getUrl() {
         return url;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 
     public int getNumber() {
