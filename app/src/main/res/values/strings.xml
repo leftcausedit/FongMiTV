@@ -134,6 +134,7 @@
     <!-- UNIT -->
     <string name="all">All</string>
     <string name="times">times</string>
+    <string name="index_offset">Index Offset</string>
 
     <string-array name="select_decode">
         <item>Soft</item>

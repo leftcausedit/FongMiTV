@@ -274,6 +274,16 @@
             android:layout_height="wrap_content"
             android:background="@drawable/shape_accent"
             android:text="@string/play_timer"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/control"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/index_offset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/shape_accent"
+            android:text="@string/index_offset"
             android:textColor="@color/control"
             android:textSize="14sp" />
 

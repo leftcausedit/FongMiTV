@@ -93,6 +93,7 @@ import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
+import com.fongmi.android.tv.ui.dialog.IndexOffsetDialog;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -136,7 +137,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener, InfoDialog.Listener {
+public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener, InfoDialog.Listener, IndexOffsetDialog.Callback {
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
@@ -177,6 +178,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private PiP mPiP;
     private String mYear;
     private Vod currentVod;
+    private int indexOffset;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -1921,6 +1923,19 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.search.removeObserver(mObserveSearch);
     }
 
+    public int getIndexOffset() {
+        return indexOffset;
+    }
+
+    public void setIndexOffset(int indexOffset) {
+        this.indexOffset = indexOffset;
+        if (mPlayers.isPlaying()) {
+            onScrobbleStart();
+        } else {
+            onScrobblePause();
+        }
+    }
+
     private void onScrobble(String scrobbleType) {
         Spider spider = VodConfig.get().getSpider(VodConfig.get().getSite(getKey()));
         if (!spider.enableTrakt()) return;
@@ -1930,11 +1945,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (duration > 1000 * 60 * 5) {
             float progressf = (float) current * 100 / duration ;
 //            int episodePos = mEpisodeAdapter.getPosition() + 1;
-            int episodePos = mEpisodeAdapter.getActivated().getIndex();
+            int episodePos = mEpisodeAdapter.getActivated().getIndex() + indexOffset;
             Trakt.toScrobble(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf, scrobbleType, new Callback() {
                 @Override
-                public void success(JSONObject result) {
-                    updateTraktText(result);
+                public void success(JSONObject result, String season, int episodePos) {
+                    updateTraktText(result, season, episodePos);
                 }
             });
 //                Toast.makeText(App.get(), "ondestroyScrobble: " + progressf, Toast.LENGTH_LONG).show();
@@ -1951,7 +1966,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         onScrobble("pause");
     }
 
-    private void updateTraktText(JSONObject result) {
+    private void updateTraktText(JSONObject result, String season, int episodePos) {
         try {
             String type = result.optString("type");
             String tmdbId = result.optJSONObject(type).optJSONObject("ids").optString("tmdb");
@@ -1967,8 +1982,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                     try {
                         JSONObject item = new JSONObject(responseStr);
                         String msg;
-                        if (finalType.equals("movie")) msg = "Trakt：" + item.optString("title") + "-" + item.optString("release_date") + "-" + finalType;
-                        else msg = item.optString("name") + "-" + item.optString("first_air_date") + "-" + finalType;
+                        if (finalType.equals("movie")) msg = item.optString("title") + " S" + season + "E" + episodePos + " " + item.optString("release_date").replaceAll("-", ".") + " " + finalType.toUpperCase();
+                        else msg = item.optString("name") + " S" + season + "E" + episodePos + " " + item.optString("first_air_date").replaceAll("-", ".") + " " + finalType.toUpperCase();
                         App.post(() -> setText(mBinding.traktItem, R.string.detail_trakt, msg));
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
@@ -1987,4 +2002,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 .build();
     }
 
+    @Override
+    public void setIndexOffset(String string) {
+        this.indexOffset = Integer.parseInt(string);
+        if (mPlayers.isPlaying()) {
+            onScrobbleStart();
+        } else {
+            onScrobblePause();
+        }
+    }
 }

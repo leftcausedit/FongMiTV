@@ -20,6 +20,9 @@ public class Callback implements okhttp3.Callback {
     public void success(JSONObject result) {
     }
 
+    public void success(JSONObject result, String season, int episodePos) {
+    }
+
     public void error(String msg) {
     }
 

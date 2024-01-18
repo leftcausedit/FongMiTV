@@ -58,6 +58,8 @@ public class History {
     private int scale;
     @SerializedName("cid")
     private int cid;
+    @SerializedName("index_offset")
+    private int indexOffset;
 
     public static History objectFrom(String str) {
         return App.gson().fromJson(str, History.class);
@@ -210,6 +212,12 @@ public class History {
 
     public void setCid(int cid) {
         this.cid = cid;
+    }
+    public int getIndexOffset() {
+        return indexOffset;
+    }
+    public void setIndexOffset(int indexOffset) {
+        this.indexOffset = indexOffset;
     }
 
     public String getSiteName() {

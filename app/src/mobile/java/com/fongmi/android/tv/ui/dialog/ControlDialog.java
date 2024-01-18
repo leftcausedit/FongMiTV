@@ -19,6 +19,7 @@ import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.databinding.DialogControlBinding;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Timer;
+import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.ParseAdapter;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
@@ -95,6 +96,7 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.opening.setText(parent.control.action.opening.getText());
         binding.loop.setActivated(parent.control.action.loop.isActivated());
         binding.timer.setActivated(Timer.get().isRunning());
+        binding.indexOffset.setActivated( ( (VideoActivity) activity ).getIndexOffset() != 0);
         setTrackVisible();
         setScaleText();
         setParse();
@@ -103,6 +105,8 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
     @Override
     protected void initEvent() {
         binding.timer.setOnClickListener(this::onTimer);
+        binding.indexOffset.setOnClickListener(this::onIndexOffset);
+        binding.indexOffset.setOnLongClickListener(this::onLongIndexOffset);
         binding.speed.addOnChangeListener(this::setSpeed);
         for (TextView view : scales) view.setOnClickListener(this::setScale);
         binding.text.setOnClickListener(v -> dismiss(parent.control.action.text));
@@ -116,6 +120,18 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.player.setOnLongClickListener(v -> longClick(binding.player, parent.control.action.player));
         binding.ending.setOnLongClickListener(v -> longClick(binding.ending, parent.control.action.ending));
         binding.opening.setOnLongClickListener(v -> longClick(binding.opening, parent.control.action.opening));
+    }
+
+    private void onIndexOffset(View view) {
+        App.post(() -> IndexOffsetDialog.create(activity, (IndexOffsetDialog.Callback) activity).title("集数偏移").detail(Integer.toString(((VideoActivity) activity).getIndexOffset()))
+                .preInput(Integer.toString(((VideoActivity) activity).getIndexOffset())).show(), 200);
+        dismiss();
+    }
+
+    private boolean onLongIndexOffset(View view) {
+        ((VideoActivity) activity).setIndexOffset(0);
+        binding.indexOffset.setActivated(false);
+        return true;
     }
 
     private void onTimer(View view) {

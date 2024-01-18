@@ -134,6 +134,7 @@
     <!-- UNIT -->
     <string name="all">全部</string>
     <string name="times">倍</string>
+    <string name="index_offset">集數偏移</string>
 
     <string-array name="select_decode">
         <item>軟解</item>

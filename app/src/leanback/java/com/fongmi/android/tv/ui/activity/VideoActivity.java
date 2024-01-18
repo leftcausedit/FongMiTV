@@ -70,6 +70,7 @@ import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.dialog.DescDialog;
+import com.fongmi.android.tv.ui.dialog.IndexOffsetDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.ui.presenter.ArrayPresenter;
 import com.fongmi.android.tv.ui.presenter.EpisodePresenter;
@@ -120,7 +121,10 @@ import okhttp3.Headers;
 import okhttp3.ResponseBody;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback, SubtitleCallback {
+public class VideoActivity
+        extends BaseActivity
+        implements CustomKeyDownVod.Listener, TrackDialog.Listener, ArrayPresenter.OnClickListener,
+        Clock.Callback, SubtitleCallback, IndexOffsetDialog.Callback {
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
@@ -341,6 +345,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.keep.setOnClickListener(view -> onKeep());
         mBinding.video.setOnClickListener(view -> onVideo());
         mBinding.change1.setOnClickListener(view -> onChange());
+        mBinding.indexOffset.setOnClickListener(view -> onIndexOffset());
+        mBinding.indexOffset.setOnLongClickListener(view -> onIndexOffsetLong());
+        mBinding.indexOffset.setOnKeyListener(this::onIndexOffsetKeyEvent);
         mBinding.control.text.setOnClickListener(this::onTrack);
         mBinding.control.audio.setOnClickListener(this::onTrack);
         mBinding.control.video.setOnClickListener(this::onTrack);
@@ -388,6 +395,27 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 if (mEpisodeAdapter.size() > 20 && position > 1) mBinding.episode.setSelectedPosition((position - 2) * 20);
             }
         });
+    }
+
+    private boolean onIndexOffsetKeyEvent(View view, int keyCode, KeyEvent event) {
+        if(event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) setIndexOffset(getIndexOffset() + 1);
+            else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) setIndexOffset(getIndexOffset() - 1);
+            else return false;
+        } else {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP || keyCode == KeyEvent.KEYCODE_DPAD_DOWN);
+            else return false;
+        }
+        return true;
+    }
+
+    private boolean onIndexOffsetLong() {
+        setIndexOffset(0);
+        return true;
+    }
+
+    private void onIndexOffset() {
+        App.post(() -> IndexOffsetDialog.create(this, this).title(getString(R.string.index_offset)).preInput(Integer.toString(getIndexOffset())).show(), 0);
     }
 
     private void setRecyclerView() {
@@ -1117,6 +1145,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.opening.setText(mHistory.getOpening() == 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
         mBinding.control.ending.setText(mHistory.getEnding() == 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
         mBinding.control.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
+        mBinding.indexOffset.setActivated(getIndexOffset() != 0);
         mPlayers.setPlayer(getPlayer());
         setScale(getScale());
         setPlayerView();
@@ -1680,12 +1709,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             float progressf = (float) current * 100 / duration ;
             String type;
 //            int episodePos = getEpisodePosition() + 1;
-            int episodePos = getEpisode().getIndex();
+            int episodePos = getEpisode().getIndex() + getIndexOffset();
             int episodeSize = mEpisodeAdapter.size();
             Trakt.toScrobble(mBinding.name.getText().toString(), getMediaType(), mBinding.year.getText().toString(), getTMDBId(), episodePos, progressf, scrobbleType, new Callback() {
                 @Override
-                public void success(JSONObject result) {
-                    updateTraktText(result);
+                public void success(JSONObject result, String season, int episodePos) {
+                    updateTraktText(result, season, episodePos);
                 }
             });
         }
@@ -1701,7 +1730,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         onScrobble("pause");
     }
 
-    private void updateTraktText(JSONObject result) {
+    private void updateTraktText(JSONObject result, String season, int episodePos) {
         try {
             String type = result.optString("type");
             String tmdbId = result.optJSONObject(type).optJSONObject("ids").optString("tmdb");
@@ -1717,8 +1746,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                     try {
                         JSONObject item = new JSONObject(responseStr);
                         String msg;
-                        if (finalType.equals("movie")) msg = "Trakt：" + item.optString("title") + "-" + item.optString("release_date") + "-" + finalType;
-                        else msg = item.optString("name") + "-" + item.optString("first_air_date") + "-" + finalType;
+                        if (finalType.equals("movie")) msg = item.optString("title") + " S" + season + "E" + episodePos + " " + item.optString("release_date") + " " + finalType.toUpperCase();
+                        else msg = item.optString("name") + " S" + season + "E" + episodePos + " " + item.optString("first_air_date") + " " + finalType.toUpperCase();
                         App.post(() -> setText(mBinding.traktItem, R.string.detail_trakt, msg));
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
@@ -1737,4 +1766,28 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 .build();
     }
 
+    @Override
+    public void setIndexOffset(String string) {
+        int indexOffset = Integer.parseInt(string);
+        setIndexOffset(indexOffset);
+    }
+
+    public void setIndexOffset(int indexOffset) {
+        if (getIndexOffset() != indexOffset) {
+            mHistory.setIndexOffset(indexOffset);
+            mHistory.update();
+            mBinding.indexOffset.setActivated(indexOffset != 0);
+            callTraktScrobbleOnIndexOffsetChange();
+            App.post(this::callTraktScrobbleOnIndexOffsetChange, 5000);
+        }
+    }
+
+    public int getIndexOffset() {
+        return mHistory.getIndexOffset();
+    }
+
+    private void callTraktScrobbleOnIndexOffsetChange() {
+        if (mPlayers.isPlaying()) onScrobbleStart();
+        else onScrobblePause();
+    }
 }

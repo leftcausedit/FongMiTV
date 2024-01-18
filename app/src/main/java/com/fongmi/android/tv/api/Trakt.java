@@ -27,11 +27,11 @@ import org.json.JSONObject;
 import okhttp3.*;
 
 public class Trakt {
-    private static String accessToken = "14665d13b002ff58b4add6ed1daded0350f5679a783f0f7950f4f22c28116b4d";
+    private static String accessToken = "";
     private static final String clientId = "8111469842a563dd678e4210ff597eb9265f7e7ed6357eef22fe3373b4a71ac9";
     private static final String clientSerect = "c4e73c927f10ce4a9fedd8ac99eef33338666819d0511f9e793b02108a58387e";
     private static String deviceCode;
-    private static String refreshToken = "95b7b7fc6ba6cc171a0e24e0d119c125ff089ed97229348a80ae06fdf8e705";
+    private static String refreshToken = "";
     public static final String apiUrl = "https://api.trakt.tv";
     private final Context context;
     private static final Handler handler = new Handler();
@@ -98,7 +98,7 @@ public class Trakt {
     public interface TraktCallback {
         void onSuccess(JSONObject result);
         void onError(Throwable throwable);
-        default void sendResultBack(JSONObject result) {}
+        default void sendResultBack(JSONObject result, String season, int episodePos) {}
     }
 
     public static void scrobbleStart(String title, String type, String year, String tmdbId, int episodePos, float progress, Callback callback) {
@@ -126,8 +126,8 @@ public class Trakt {
             }
 
             @Override
-            public void sendResultBack(JSONObject result) {
-                callback.success(result);
+            public void sendResultBack(JSONObject result, String season, int episodePos) {
+                callback.success(result, season, episodePos);
             }
         });
     }
@@ -280,8 +280,8 @@ public class Trakt {
                 }
 
                 @Override
-                public void sendResultBack(JSONObject result) {
-                    callback.sendResultBack(result);
+                public void sendResultBack(JSONObject result, String season, int episodePos) {
+                    callback.sendResultBack(result, season, episodePos);
                 }
             });
         } else {
@@ -301,8 +301,8 @@ public class Trakt {
                         }
 
                         @Override
-                        public void sendResultBack(JSONObject result) {
-                            callback.sendResultBack(result);
+                        public void sendResultBack(JSONObject result, String season, int episodePos) {
+                            callback.sendResultBack(result, season, episodePos);
                         }
                     });
                 }
@@ -340,7 +340,7 @@ public class Trakt {
                     }
                     if (result == null) return;
                     String finalType = result.optString("type", "");
-                    callback.sendResultBack(result);
+                    callback.sendResultBack(result, season, episodePos);
                     if (finalType.equals("show")) {
                         String slug = result.optJSONObject(finalType).optJSONObject("ids").optString("slug");
                         getEpisodeItem(slug, finalSeason, episodePos, new TraktCallback() {
