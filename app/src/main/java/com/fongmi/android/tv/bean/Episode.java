@@ -16,8 +16,8 @@ public class Episode implements Parcelable {
     private String desc;
     @SerializedName("url")
     private String url;
-    @SerializedName("index")
-    private int index; // 第index集
+    @SerializedName("position")
+    private int position; // 第position集
 
     private int index;
     private int number;
@@ -32,13 +32,17 @@ public class Episode implements Parcelable {
         return new Episode(name, desc, url);
     }
 
-    public Episode index(int index) {
-        this.index = index;
+    public Episode position(int position) {
+        this.position = position;
         return this;
     }
 
-    public int getIndex() {
-        return this.index;
+    public int getPosition() {
+        return this.position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
     }
 
     public static Episode objectFrom(String str) {

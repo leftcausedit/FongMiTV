@@ -109,8 +109,8 @@ public class Flag implements Parcelable {
 //            String number = String.format(Locale.getDefault(), "%02d", i + 1);
             int number = i + 1;
             Episode episode = split.length > 1 ?
-                    Episode.create(split[0].isEmpty() ? Integer.toString(number) : split[0].trim(), split[1]).index(order == -1 ? number : order) :
-                    Episode.create(Integer.toString(number), urls[i]).index(order == -1 ? number : order);
+                    Episode.create(split[0].isEmpty() ? Integer.toString(number) : split[0].trim(), split[1]).position(order == -1 ? number : order) :
+                    Episode.create(Integer.toString(number), urls[i]).position(order == -1 ? number : order);
             if (!getEpisodes().contains(episode)) getEpisodes().add(episode);
         }
     }

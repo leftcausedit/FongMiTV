@@ -1947,7 +1947,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (duration > 1000 * 60 * 5) {
             float progressf = (float) current * 100 / duration ;
 //            int episodePos = mEpisodeAdapter.getPosition() + 1;
-            int episodePos = mEpisodeAdapter.getActivated().getIndex() + indexOffset;
+            int episodePos = mEpisodeAdapter.getActivated().getPosition() + indexOffset;
             Trakt.toScrobble(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf, scrobbleType, new Callback() {
                 @Override
                 public void success(JSONObject result, String season, int episodePos) {

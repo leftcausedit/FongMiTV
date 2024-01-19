@@ -1774,7 +1774,7 @@ public class VideoActivity
             float progressf = (float) current * 100 / duration ;
             String type;
 //            int episodePos = getEpisodePosition() + 1;
-            int episodePos = getEpisode().getIndex() + getIndexOffset();
+            int episodePos = getEpisode().getPosition() + getIndexOffset();
             int episodeSize = mEpisodeAdapter.size();
             Trakt.toScrobble(mBinding.name.getText().toString(), getMediaType(), mBinding.year.getText().toString(), getTMDBId(), episodePos, progressf, scrobbleType, new Callback() {
                 @Override
