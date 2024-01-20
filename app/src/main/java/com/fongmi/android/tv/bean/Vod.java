@@ -261,6 +261,10 @@ public class Vod implements Parcelable {
         return getVodTag().equals("manga");
     }
 
+    public boolean isDetail() { // need to call DetailActivity
+        return getVodTag().equals("detail");
+    }
+
     public boolean isPhoto() {
         return getVodTag().equals("photo");
     }
