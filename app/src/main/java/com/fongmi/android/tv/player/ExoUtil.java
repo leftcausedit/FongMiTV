@@ -69,7 +69,7 @@ public class ExoUtil {
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                 .setBackBuffer(times * DefaultLoadControl.DEFAULT_MAX_BUFFER_MS, false)
                 .setBufferDurationsMs(
-                        /* times * DefaultLoadControl.DEFAULT_MIN_BUFFER_MS */ 5000,
+                        times * DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
                         times * DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
                         /* DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS */ 0,
                         /* DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS*/ 5000)
