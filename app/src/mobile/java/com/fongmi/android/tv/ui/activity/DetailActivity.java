@@ -244,7 +244,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
     }
 
     private void loadTMDBData() {
-        ImgUtil.rect(isMovie() ? tmdbItem.optString("title") : tmdbItem.optString("name"), "https://image.tmdb.org/t/p/original" + tmdbItem.optString("backdrop_path"), mBinding.landscape);
+        ImgUtil.rect(isMovie() ? tmdbItem.optString("title") : tmdbItem.optString("name"), "https://image.tmdb.org/t/p/w780" + tmdbItem.optString("backdrop_path"), mBinding.landscape); // smaller image size for backdrop than '/original'
         mBinding.contentText.setText(tmdbItem.optString("overview"));
         mBinding.type.setText(combineTMDBGenres(tmdbItem));
         mBinding.date.setText(isMovie() ? tmdbItem.optString("release_date") : tmdbItem.optString("first_air_date"));
@@ -287,7 +287,7 @@ public class DetailActivity extends BaseActivity implements FlagAdapter.OnClickL
         return isMovie() ? "movie" : "tv";
     }
 
-    private String getDoubanIdFromIMDBID() {
+    private String getDoubanIdFromIMDBID() { // api 时好时坏
         try {
             futureGetTraktData.get();
             String url = "https://movie.douban.com/j/subject_suggest?q=" + getIMDBIdFromTraktItemWithChild();
