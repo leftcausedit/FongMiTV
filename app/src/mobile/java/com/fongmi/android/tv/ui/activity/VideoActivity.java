@@ -178,7 +178,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private PiP mPiP;
     private String mYear;
     private Vod currentVod;
-    private int indexOffset;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -1925,19 +1924,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.search.removeObserver(mObserveSearch);
     }
 
-    public int getIndexOffset() {
-        return indexOffset;
-    }
-
-    public void setIndexOffset(int indexOffset) {
-        this.indexOffset = indexOffset;
-        if (mPlayers.isPlaying()) {
-            onScrobbleStart();
-        } else {
-            onScrobblePause();
-        }
-    }
-
     private void onScrobble(String scrobbleType) {
         Spider spider = VodConfig.get().getSpider(VodConfig.get().getSite(getKey()));
         if (!spider.enableTrakt()) return;
@@ -1947,7 +1933,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (duration > 1000 * 60 * 5) {
             float progressf = (float) current * 100 / duration ;
 //            int episodePos = mEpisodeAdapter.getPosition() + 1;
-            int episodePos = mEpisodeAdapter.getActivated().getPosition() + indexOffset;
+            int episodePos = mEpisodeAdapter.getActivated().getPosition() + getIndexOffset();
             Trakt.toScrobble(mBinding.name.getText().toString(), getMediaType(), mYear, getTMDBId(), episodePos, progressf, scrobbleType, new Callback() {
                 @Override
                 public void success(JSONObject result, String season, int episodePos) {
@@ -2006,11 +1992,25 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void setIndexOffset(String string) {
-        this.indexOffset = Integer.parseInt(string);
-        if (mPlayers.isPlaying()) {
-            onScrobbleStart();
-        } else {
-            onScrobblePause();
+        int indexOffset = Integer.parseInt(string);
+        setIndexOffset(indexOffset);
+    }
+
+    public int getIndexOffset() {
+        return mHistory.getIndexOffset();
+    }
+
+    public void setIndexOffset(int indexOffset) {
+        if (getIndexOffset() != indexOffset) {
+            mHistory.setIndexOffset(indexOffset);
+            mHistory.update();
+            callTraktScrobbleOnIndexOffsetChange();
+            App.post(this::callTraktScrobbleOnIndexOffsetChange, 5000);
         }
+    }
+
+    private void callTraktScrobbleOnIndexOffsetChange() {
+        if (mPlayers.isPlaying()) onScrobbleStart();
+        else onScrobblePause();
     }
 }

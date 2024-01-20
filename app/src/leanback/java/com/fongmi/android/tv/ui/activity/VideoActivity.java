@@ -238,7 +238,7 @@ public class VideoActivity
     private String getMediaType() {
         String type = Objects.toString(getIntent().getStringExtra("media_type"),"");
         if (type.isEmpty() && !getCurrentVod().getVodMediaType().isEmpty()) type = getCurrentVod().getVodMediaType();
-        else type = mEpisodeAdapter.size() > 1 ? "tv" : "movie";
+//        else type = mEpisodeAdapter.size() > 1 ? "tv" : "movie"; // 判断不稳定，有时电视刚发布只有一集，有时电影有多个版本，不止一集，最好能够手动更改。
         return type;
     }
 
