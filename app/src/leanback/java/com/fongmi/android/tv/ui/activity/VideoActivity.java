@@ -160,6 +160,7 @@ public class VideoActivity
     private Runnable mR2;
     private Runnable mR3;
     private Runnable mR4;
+    private Runnable mRScrobbleStart;
     private Clock mClock;
     private View mFocus1;
     private View mFocus2;
@@ -337,6 +338,7 @@ public class VideoActivity
         mR2 = this::updateFocus;
         mR3 = this::setTraffic;
         mR4 = this::showEmpty;
+        mRScrobbleStart = this::onScrobbleStart;
         setBackground(false);
         setRecyclerView();
         setEpisodeView();
@@ -1002,7 +1004,7 @@ public class VideoActivity
     private boolean onChoose() {
         if (mPlayers.isEmpty()) return false;
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.putExtra("return_result", true);
         intent.putExtra("headers", mPlayers.getHeaderArray());
@@ -1309,7 +1311,7 @@ public class VideoActivity
                 showProgress();
                 break;
             case Player.STATE_READY:
-                onScrobbleStart();
+                App.post(mRScrobbleStart, 1000);
                 stopSearch();
                 setMetadata();
                 resetToggle();
@@ -1321,6 +1323,7 @@ public class VideoActivity
                 mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
             case Player.STATE_ENDED:
+                App.removeCallbacks(mRScrobbleStart);
                 onScrobbleStop();
                 checkEnded();
                 break;
@@ -1843,7 +1846,7 @@ public class VideoActivity
             mHistory.update();
             mBinding.indexOffset.setActivated(indexOffset != 0);
             callTraktScrobbleOnIndexOffsetChange();
-            App.post(this::callTraktScrobbleOnIndexOffsetChange, 5000);
+            App.post(this::callTraktScrobbleOnIndexOffsetChange, 1000);
         }
     }
 

@@ -174,6 +174,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private Runnable mR2;
     private Runnable mR3;
     private Runnable mR4;
+    private Runnable mRScrobbleStart;
     private Clock mClock;
     private PiP mPiP;
     private String mYear;
@@ -353,6 +354,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mR2 = this::setTraffic;
         mR3 = this::setOrient;
         mR4 = this::showEmpty;
+        mRScrobbleStart = this::onScrobbleStart;
         mPiP = new PiP();
         setForeground(true);
         setActivityBackground();
@@ -1039,7 +1041,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private boolean onChoose() {
         if (mPlayers.isEmpty()) return false;
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);  // cannot pass data between intents with this flag
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.putExtra("return_result", true);
         intent.putExtra("headers", mPlayers.getHeaderArray());
@@ -1364,7 +1366,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 showProgress();
                 break;
             case Player.STATE_READY:
-                onScrobbleStart();
+                App.post(mRScrobbleStart, 1000); // make sure more than 1 sec between scrobbleStop and last call;
                 stopSearch();
                 checkRotate();
                 setMetadata();
@@ -1379,6 +1381,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
+                App.removeCallbacks(mRScrobbleStart); // make sure more than 1 sec between scrobbleStop and last call;
                 onScrobbleStop();
                 checkEnded();
                 break;
@@ -2005,7 +2008,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             mHistory.setIndexOffset(indexOffset);
             mHistory.update();
             callTraktScrobbleOnIndexOffsetChange();
-            App.post(this::callTraktScrobbleOnIndexOffsetChange, 5000);
+            App.post(this::callTraktScrobbleOnIndexOffsetChange, 1000); // change the delay, 1 sec is enough
         }
     }
 
