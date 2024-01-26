@@ -35,8 +35,10 @@ public class VodRectHolder extends BaseVodHolder {
         binding.name.setVisibility(item.getNameVisible());
         binding.year.setVisibility(item.getYearVisible());
         binding.remark.setVisibility(item.getRemarkVisible());
-        binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
-        binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
+        binding.search.setOnClickListener(v -> listener.onSearchIconClick(item));
+        binding.share.setOnClickListener(v -> listener.onShareIconClick(item));
+        binding.foreground.setOnClickListener(v -> listener.onItemClick(item));
+        binding.foreground.setOnLongClickListener(v -> listener.onLongClick(item, binding));
         ImgUtil.rect(item.getVodName(), item.getVodPic(), binding.image);
     }
 }

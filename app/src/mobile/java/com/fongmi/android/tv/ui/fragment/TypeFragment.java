@@ -1,7 +1,9 @@
 package com.fongmi.android.tv.ui.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -20,6 +22,7 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Style;
 import com.fongmi.android.tv.bean.Value;
 import com.fongmi.android.tv.bean.Vod;
+import com.fongmi.android.tv.databinding.AdapterVodRectBinding;
 import com.fongmi.android.tv.databinding.FragmentTypeBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
@@ -30,6 +33,7 @@ import com.fongmi.android.tv.ui.activity.PhotoActivity;
 import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
+import com.fongmi.android.tv.utils.Util;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -236,9 +240,30 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     @Override
+    public boolean onLongClick(Vod item, AdapterVodRectBinding binding) {
+        int visibility = binding.buttonContainer.getVisibility();
+        binding.buttonContainer.setVisibility(visibility == View.VISIBLE ? View.GONE : View.VISIBLE);
+//        CollectActivity.start(getActivity(), item.getVodName());
+        return true;
+    }
+
     public boolean onLongClick(Vod item) {
         CollectActivity.start(getActivity(), item.getVodName());
         return true;
+    }
+
+    @Override
+    public void onSearchIconClick(Vod item) {
+        CollectActivity.start(getActivity(), item.getVodName());
+    }
+
+    @Override
+    public void onShareIconClick(Vod item) {
+        String text = item.getVodName();
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_TEXT, text);
+        intent.setType("text/plain");
+        startActivity(Util.getChooser(intent));
     }
 
     @Override
