@@ -129,7 +129,8 @@
         android:layout_above="@id/name"
         android:layout_alignTop="@id/image"
         android:background="@color/black_60"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -140,6 +141,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_google_search"
+                android:backgroundTint="@color/black_60"
+                android:layout_margin="4dp"
+                android:background="@drawable/shape_item_round_activated"/>
+            <ImageButton
+                android:id="@+id/overview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_google_article"
                 android:backgroundTint="@color/black_60"
                 android:layout_margin="4dp"
                 android:background="@drawable/shape_item_round_activated"/>

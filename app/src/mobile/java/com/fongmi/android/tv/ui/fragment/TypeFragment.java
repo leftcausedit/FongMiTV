@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -255,6 +256,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     @Override
     public void onSearchIconClick(Vod item) {
         CollectActivity.start(getActivity(), item.getVodName());
+    }
+
+    @Override
+    public void onOverviewIconClick(Vod item) {
+        AlertDialog dialog = new AlertDialog.Builder(getActivity()).setMessage(item.getVodContent()).create();
+        dialog.show();
     }
 
     @Override

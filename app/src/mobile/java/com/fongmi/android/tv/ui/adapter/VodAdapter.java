@@ -42,6 +42,8 @@ public class VodAdapter extends RecyclerView.Adapter<BaseVodHolder> {
 
         default void onSearchIconClick(Vod item) {}
 
+        default void onOverviewIconClick(Vod item) {}
+
         default void onShareIconClick(Vod item) {}
 
         boolean onLongClick(Vod item);

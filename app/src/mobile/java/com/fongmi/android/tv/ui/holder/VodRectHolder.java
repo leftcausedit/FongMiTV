@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.ui.holder;
 
+import android.view.View;
+
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.bean.Vod;
@@ -35,7 +37,9 @@ public class VodRectHolder extends BaseVodHolder {
         binding.name.setVisibility(item.getNameVisible());
         binding.year.setVisibility(item.getYearVisible());
         binding.remark.setVisibility(item.getRemarkVisible());
+        binding.buttonContainer.setVisibility(View.GONE);
         binding.search.setOnClickListener(v -> listener.onSearchIconClick(item));
+        binding.overview.setOnClickListener(v -> listener.onOverviewIconClick(item));
         binding.share.setOnClickListener(v -> listener.onShareIconClick(item));
         binding.foreground.setOnClickListener(v -> listener.onItemClick(item));
         binding.foreground.setOnLongClickListener(v -> listener.onLongClick(item, binding));
