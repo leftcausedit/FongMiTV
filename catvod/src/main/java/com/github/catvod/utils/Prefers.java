@@ -52,7 +52,11 @@ public class Prefers {
     }
 
     public static float getFloat(String key, float defaultValue) {
-        return getPrefers().getFloat(key, defaultValue);
+        try {
+            return getPrefers().getFloat(key, defaultValue);
+        } catch (Exception e) {
+            return 0f;
+        }
     }
 
     public static boolean getBoolean(String key) {
