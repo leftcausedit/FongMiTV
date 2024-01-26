@@ -22,6 +22,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Site;
@@ -32,6 +33,7 @@ import com.fongmi.android.tv.ui.fragment.CollectFragment;
 import com.fongmi.android.tv.ui.presenter.CollectPresenter;
 import com.fongmi.android.tv.utils.PauseExecutor;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +58,15 @@ public class CollectActivity extends BaseActivity {
         if (clear) intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra("keyword", keyword);
         activity.startActivityForResult(intent, 1000);
+        updateSearchHistory(keyword);
+    }
+
+    private static void updateSearchHistory(String keyword) {
+        List<String> items = App.gson().fromJson(Setting.getKeyword(), new TypeToken<List<String>>() {}.getType());
+        if (items == null || !items.contains(keyword)) {
+            items.add(keyword);
+            Setting.putKeyword(App.gson().toJson(items));
+        }
     }
 
     private CollectFragment getFragment() {
@@ -78,6 +89,7 @@ public class CollectActivity extends BaseActivity {
         setPager();
         setSite();
         search();
+        setListener();
     }
 
     @Override
@@ -94,6 +106,10 @@ public class CollectActivity extends BaseActivity {
                 onChildSelected(child);
             }
         });
+    }
+
+    private void setListener() {
+        mBinding.result.setOnClickListener(view -> SearchActivity.start(this, getKeyword()));
     }
 
     private void setRecyclerView() {

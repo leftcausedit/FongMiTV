@@ -44,9 +44,15 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     private ActivitySearchBinding mBinding;
     private RecordAdapter mRecordAdapter;
     private WordAdapter mWordAdapter;
+    private static String mKeyword;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SearchActivity.class));
+    }
+
+    public static void start(Activity activity, String keyword) {
+        start(activity);
+        mKeyword = keyword;
     }
 
     @Override
@@ -59,6 +65,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
         CustomKeyboard.init(this, mBinding);
         setRecyclerView();
         getHot();
+        mBinding.keyword.setText(mKeyword);
     }
 
     @Override
@@ -140,7 +147,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
         mBinding.keyword.setSelection(mBinding.keyword.length());
         Util.hideKeyboard(mBinding.keyword);
         if (TextUtils.isEmpty(keyword)) return;
-        CollectActivity.start(this, keyword);
+        CollectActivity.start(this, keyword, true);
         App.post(() -> mRecordAdapter.add(keyword), 250);
     }
 
