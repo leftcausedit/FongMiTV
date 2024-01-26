@@ -179,6 +179,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private PiP mPiP;
     private String mYear;
     private Vod currentVod;
+    private String traktSlug;
+    private String traktMediaType;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -374,13 +376,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
-        mBinding.name.setOnClickListener(view -> onName());
+        mBinding.name.setOnClickListener(view -> onNameCopy());
+        mBinding.name.setOnLongClickListener(view -> onNameShare());
+        mBinding.site.setOnClickListener(view -> onSite()); // quick search
         mBinding.more.setOnClickListener(view -> onMore());
         mBinding.actor.setOnClickListener(view -> onActor());
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
-        mBinding.name.setOnLongClickListener(view -> onChange());
+        mBinding.site.setOnLongClickListener(view -> onChange()); // change source
+        mBinding.traktItem.setOnLongClickListener(view -> onLongClickTraktItem());
         mBinding.control.cast.setOnClickListener(view -> onCast());
+        mBinding.control.cast.setOnLongClickListener(view -> onExternalPlayer());
         mBinding.control.info.setOnClickListener(view -> onInfo());
         mBinding.control.full.setOnClickListener(view -> onFull());
         mBinding.control.keep.setOnClickListener(view -> onKeep());
@@ -415,6 +421,27 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.swipeLayout.setOnRefreshListener(this::onSwipeRefresh);
         mBinding.control.seek.setListener(mPlayers);
         mBinding.widget.seekBar.setListener(mPlayers);
+    }
+
+    private boolean onNameShare() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_TEXT, mBinding.name.getText().toString());
+        intent.setType("text/plain");
+        startActivity(Util.getChooser(intent));
+        setRedirect(true);
+        return true;
+    }
+
+    private void onNameCopy() {
+        Util.copy(mBinding.name.getText().toString());
+    }
+
+    private boolean onLongClickTraktItem() {
+        Uri uri = Uri.parse(String.format("https://trakt.tv/%s/%s", traktMediaType, traktSlug));
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        return true;
     }
 
     private void setRecyclerView() {
@@ -792,7 +819,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (scroll) mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition());
     }
 
-    private void onName() {
+    private void onSite() {
         String name = mBinding.name.getText().toString();
         Notify.show(getString(R.string.detail_search, name));
         initSearch(name, false);
@@ -1049,6 +1076,22 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         intent.putExtra("title", mBinding.control.title.getText());
         intent.setDataAndType(mPlayers.getUri(), "video/*");
         startActivityForResult(Util.getChooser(intent), 1001);
+        setRedirect(true);
+        return true;
+    }
+
+    private boolean onExternalPlayer() {
+        if (mPlayers.isEmpty()) return false;
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);  // cannot pass data between intents with this flag
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setPackage("com.mxtech.videoplayer.ad"); // TODO: set package name in setting or check a list of them
+        intent.putExtra("return_result", true);
+        intent.putExtra("headers", mPlayers.getHeaderArray());
+        intent.putExtra("position", (int) mPlayers.getPosition());
+        intent.putExtra("title", mBinding.control.title.getText());
+        intent.setDataAndType(mPlayers.getUri(), "video/*");
+        startActivityForResult(intent, 1001);
         setRedirect(true);
         return true;
     }
@@ -1817,6 +1860,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Override
+    public void onSharePlainText(String text) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_TEXT, text);
+        intent.setType("text/plain");
+        startActivity(Util.getChooser(intent));
+        setRedirect(true);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) mPlayers.checkData(data);
@@ -1960,7 +2012,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void updateTraktText(JSONObject result, String season, int episodePos) {
         try {
             String type = result.optString("type");
+            traktMediaType = type;
             String tmdbId = result.optJSONObject(type).optJSONObject("ids").optString("tmdb");
+            traktSlug = result.optJSONObject(type).optJSONObject("ids").optString("slug");
 
             if (!type.equals("movie")) type = "tv";
             String url = "https://api.themoviedb.org/3/" + type + "/" + tmdbId + "?language=zh-CN";
