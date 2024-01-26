@@ -156,6 +156,7 @@ public class VideoActivity
     private boolean useParse;
     private int currentFlag;
     private int toggleCount;
+    private int groupSize;
     private Runnable mR1;
     private Runnable mR2;
     private Runnable mR3;
@@ -313,6 +314,11 @@ public class VideoActivity
         return Setting.getEpisode() == 0 ? mBinding.episodeHori : mBinding.episodeVert;
     }
 
+    private void setEpisodeSelectedPosition(int position) {
+        if (Setting.getEpisode() == 1) position += 3 * mEpisodePresenter.getNumColumns();//temporary solution
+        getEpisodeView().setSelectedPosition(position);
+    }
+
     private boolean isReplay() {
         return Setting.getReset() == 1;
     }
@@ -404,7 +410,7 @@ public class VideoActivity
         mBinding.array.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                if (mEpisodeAdapter.size() > 20 && position > 1) getEpisodeView().setSelectedPosition((position - 2) * 20);
+                if (mEpisodeAdapter.size() > getGroupSize() && position > 1) setEpisodeSelectedPosition((position - 2) * getGroupSize() + 1);
             }
         });
     }
@@ -678,11 +684,15 @@ public class VideoActivity
 
     private void setEpisodeView(List<Episode> items) {
         int size = items.size();
-        for (int i = 0; i < size; i++) items.get(i).setIndex(i);
         int episodeNameLength = items.isEmpty() ? 0 : items.get(0).getName().length();
+        for (int i = 0; i < size; i++) {
+            items.get(i).setIndex(i);
+            int length = items.get(i).getName() == null ? 0 : items.get(i).getName().length();
+            if (length > episodeNameLength) episodeNameLength = length;
+        }
         int numColumns = 10;
-        if (episodeNameLength > 40) numColumns = 2;
-        else if (episodeNameLength > 20) numColumns = 3;
+        if (episodeNameLength > 30) numColumns = 2;
+        else if (episodeNameLength > 15) numColumns = 3;
         else if (episodeNameLength > 10) numColumns = 4;
         else if (episodeNameLength > 6) numColumns = 6;
         else if (episodeNameLength > 2) numColumns = 8;
@@ -690,7 +700,7 @@ public class VideoActivity
         int width = ResUtil.getScreenWidth() - ResUtil.dp2px(48);
         ViewGroup.LayoutParams params = mBinding.episodeVert.getLayoutParams();
         params.width = ResUtil.getScreenWidth();
-        params.height = rowNum > 6 ? ResUtil.dp2px(300) : ResUtil.dp2px(rowNum * 50);
+        params.height = rowNum > 6 ? ResUtil.dp2px(300) : ResUtil.dp2px(rowNum * 44);
         mBinding.episodeVert.setNumColumns(numColumns);
         mBinding.episodeVert.setColumnWidth((width - ((numColumns - 1) * ResUtil.dp2px(8))) / numColumns);
         mBinding.episodeVert.setLayoutParams(params);
@@ -705,7 +715,7 @@ public class VideoActivity
         if (Setting.getFlag() == 1) {
             episode.setActivated(true);
             getEpisodeView().requestFocus();
-            getEpisodeView().setSelectedPosition(getEpisodePosition());
+            setEpisodeSelectedPosition(getEpisodePosition());
             episode.setActivated(false);
         } else {
             mHistory.setVodRemarks(episode.getName());
@@ -719,7 +729,7 @@ public class VideoActivity
         if (shouldEnterFullscreen(item)) return;
         setCurrentFlag(mBinding.flag.getSelectedPosition());
         for (int i = 0; i < mFlagAdapter.size(); i++) ((Flag) mFlagAdapter.get(i)).toggle(getCurrentFlag() == i, item);
-        getEpisodeView().setSelectedPosition(getEpisodePosition());
+        setEpisodeSelectedPosition(getEpisodePosition());
         notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
         if (mEpisodeAdapter.size() == 0) return;
         if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
@@ -745,7 +755,7 @@ public class VideoActivity
     private void reverseEpisode(boolean scroll) {
         for (int i = 0; i < mFlagAdapter.size(); i++) Collections.reverse(((Flag) mFlagAdapter.get(i)).getEpisodes());
         setEpisodeAdapter(getFlag().getEpisodes());
-        if (scroll) getEpisodeView().setSelectedPosition(getEpisodePosition());
+        if (scroll) setEpisodeSelectedPosition(getEpisodePosition());
     }
 
     private void setParseActivated(Parse item) {
@@ -755,12 +765,15 @@ public class VideoActivity
     }
 
     private void setArrayAdapter(int size) {
+        if (size > 200) setGroupSize(100);
+        else if (size > 100) setGroupSize(40);
+        else setGroupSize(20);
         List<String> items = new ArrayList<>();
         items.add(getString(R.string.play_reverse));
         items.add(getString(mHistory.getRevPlayText()));
         mBinding.array.setVisibility(size > 1 ? View.VISIBLE : View.GONE);
-        if (mHistory.isRevSort()) for (int i = size; i > 0; i -= 20) items.add(i + "-" + Math.max(i - 19, 1));
-        else for (int i = 0; i < size; i += 20) items.add((i + 1) + "-" + Math.min(i + 20, size));
+        if (mHistory.isRevSort()) for (int i = size; i > 0; i -= getGroupSize()) items.add(i + "-" + Math.max(i - (getGroupSize() - 1), 1));
+        else for (int i = 0; i < size; i += getGroupSize()) items.add((i + 1) + "-" + Math.min(i + getGroupSize(), size));
         mArrayAdapter.setItems(items, null);
     }
 
@@ -1081,12 +1094,10 @@ public class VideoActivity
 
     private void showInfo() {
         updateCenterSeekBar();
-        mBinding.widget.center.setVisibility(View.VISIBLE);
         mBinding.widget.info.setVisibility(View.VISIBLE);
     }
 
     private void hideInfo() {
-        mBinding.widget.center.setVisibility(View.GONE);
         mBinding.widget.info.setVisibility(View.GONE);
     }
 
@@ -1100,6 +1111,16 @@ public class VideoActivity
         mBinding.widget.centerSeekBar.setPosition(mPlayers.getPosition() + time);
     }
 
+    private void showInfoAndCenter() {
+        showInfo();
+        mBinding.widget.center.setVisibility(View.VISIBLE);
+    }
+
+    private void hideInfoAndCenter() {
+        hideInfo();
+        mBinding.widget.center.setVisibility(View.GONE);
+    }
+
     private void showControl(View view) {
         mBinding.control.danmu.setVisibility(mBinding.danmaku.isPrepared() ? View.VISIBLE : View.GONE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
@@ -1108,6 +1129,11 @@ public class VideoActivity
     }
 
     private void hideControl() {
+        hideControl(true);
+    }
+
+    private void hideControl(boolean hideInfo) {
+        if (hideInfo) hideInfo();
         mBinding.control.text.setText(R.string.play_track_text);
         mBinding.control.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR1);
@@ -1115,7 +1141,7 @@ public class VideoActivity
 
     private void hideCenter() {
         mBinding.widget.action.setImageResource(R.drawable.ic_widget_play);
-        hideInfo();
+        mBinding.widget.center.setVisibility(View.GONE);
     }
 
     private void showPreview(Drawable preview) {
@@ -1516,8 +1542,8 @@ public class VideoActivity
     private void onPaused(boolean visible) {
         mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
-        if (visible) showInfo();
-        else hideInfo();
+        if (visible) showInfoAndCenter();
+        else hideInfoAndCenter();
         mPlayers.pause();
     }
 
@@ -1590,6 +1616,14 @@ public class VideoActivity
         this.toggleCount = 0;
     }
 
+    public int getGroupSize() {
+        return groupSize;
+    }
+
+    public void setGroupSize(int size) {
+        groupSize = size;
+    }
+
     private View getFocus1() {
         return mFocus1 == null ? mBinding.video : mFocus1;
     }
@@ -1600,6 +1634,11 @@ public class VideoActivity
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (!isFullscreen() && KeyUtil.isBackKey(event) && getFocus1() != mBinding.video) {
+            mBinding.video.requestFocus();
+            mFocus1 = null;
+            return true;
+        }
         if (isFullscreen() && KeyUtil.isMenuKey(event)) onToggle();
         if (isVisible(mBinding.control.getRoot())) setR1Callback();
         if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
@@ -1673,6 +1712,7 @@ public class VideoActivity
     public void onKeyUp() {
         long current = mPlayers.getPosition();
         long half = mPlayers.getDuration() / 2;
+        showInfo();
         showControl(current < half ? mBinding.control.opening : mBinding.control.ending);
     }
 
@@ -1685,13 +1725,13 @@ public class VideoActivity
     public void onKeyCenter() {
         if (mPlayers.isPlaying()) {
             onPaused(true);
+            hideControl(false);
             onScrobblePause();
-        }
-        else {
+        } else {
             onPlay();
+            hideControl(true);
             onScrobbleStart();
         }
-        hideControl();
     }
 
     @Override
