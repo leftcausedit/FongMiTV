@@ -26,9 +26,9 @@ android {
         mobile {
             dimension "mode"
         }
-//        java {
-//            dimension "api"
-//        }
+        java {
+            dimension "api"
+        }
         python {
             dimension "api"
         }
@@ -81,9 +81,16 @@ android {
         def names = variant.flavors*.name
         // To check for a certain build type, use variant.buildType.name == "<buildType>"
         if (names.contains("leanback") && names.contains("arm64_v8a") ||
-                names.contains("mobile") && names.contains("armeabi_v7a")) {
+                names.contains("mobile") && names.contains("armeabi_v7a") ||
+                names.contains("python") && names.contains("x86")) {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
+        }
+
+        if (names.contains("python")) {
+            dependencies {
+                implementation project(':pyramid')
+            }
         }
     }
 
@@ -122,7 +129,6 @@ dependencies {
     implementation project(':jianpian')
     implementation project(':forcetech')
     implementation project(':ijkplayer')
-    implementation project(':pyramid')
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.20')
     implementation 'androidx.media3:media3-database:' + media3Version
     implementation 'androidx.media3:media3-datasource:' + media3Version
@@ -182,4 +188,5 @@ dependencies {
     implementation 'com.github.mmin18:RealtimeBlurView:-SNAPSHOT'
     implementation 'io.github.afkt:DevJava:1.4.9'
     implementation 'androidx.palette:palette:1.0.0'
+    implementation 'com.uwetrottmann.tmdb2:tmdb-java:2.10.0'
 }
