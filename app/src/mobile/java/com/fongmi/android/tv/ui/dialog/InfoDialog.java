@@ -87,10 +87,18 @@ public class InfoDialog {
     }
 
     private void initEvent() {
+        binding.title.setOnClickListener(v -> onCopy(title.toString()));
+        binding.title.setOnLongClickListener(v -> onSharePlainText(title.toString()));
         binding.url.setOnClickListener(this::onShare);
         binding.vid.setOnLongClickListener(v -> onCopy(vid));
         binding.url.setOnLongClickListener(v -> onCopy(url));
         binding.header.setOnLongClickListener(v -> onCopy(header));
+    }
+
+    private boolean onSharePlainText(String text) {
+        callback.onSharePlainText(text);
+        dialog.dismiss();
+        return true;
     }
 
     private void onShare(View view) {
@@ -107,5 +115,6 @@ public class InfoDialog {
     public interface Listener {
 
         void onShare(CharSequence title, String url);
+        default void onSharePlainText(String text) {}
     }
 }
