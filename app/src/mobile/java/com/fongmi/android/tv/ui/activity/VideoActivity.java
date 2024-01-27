@@ -122,6 +122,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -852,26 +853,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onInfo() {
-        String video = "", audio = "", detail = "";
+        String video = "", audio = "", detail = "", buffered = "";
         if (mPlayers.isExo()) {
-            List<Tracks.Group> trackGroups = mPlayers.exo().getCurrentTracks().getGroups();
-            for (int i = 0; i < trackGroups.size(); i++) {
-                Tracks.Group trackGroup = trackGroups.get(i);
-                for (int j = 0; j < trackGroup.length; j++) {
-                    if (trackGroup.isTrackSelected(j)) {
-                        Format format = trackGroup.getMediaTrackGroup().getFormat(j);
-                        if (trackGroup.getType() == 2) {
-                            video = "video: " + format.sampleMimeType + " " + format.codecs + "\n";
-                        } else if (trackGroup.getType() == 1) {
-                            audio = "audio: " + format.sampleMimeType + (format.codecs == null ? " " : " " + format.codecs) + "\n";
-                        }
-                    }
-                }
-            }
+            Format format = mPlayers.exo().getAudioFormat();
+            audio = "audio: " + format.sampleMimeType + (format.codecs == null ? " " : " " + format.codecs) + String.format(Locale.CHINA, " %dch %dHz", format.channelCount, format.sampleRate) + "\n";
+            format = mPlayers.exo().getVideoFormat();
+            video = "video: " + format.sampleMimeType + " " + format.codecs + (format.frameRate == -1.0f ? "" : (" " + format.frameRate + "fps")) + "\n";
+            buffered = String.format(Locale.CHINA ,"buffered: %d sec \n", mPlayers.exo().getTotalBufferedDuration() / 1000);
 
             detail =
-                    "resolution: " + getExo().getPlayer().getVideoSize().width + " x " + getExo().getPlayer().getVideoSize().height + "\n"
-                            + video + audio
+                    "resolution: " + getExo().getPlayer().getVideoSize().width + " * " + getExo().getPlayer().getVideoSize().height + "\n"
+                            + buffered + video + audio
             ;
         }
 
