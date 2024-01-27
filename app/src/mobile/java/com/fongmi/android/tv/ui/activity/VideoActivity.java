@@ -706,8 +706,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         updateHistory(episode, replay);
+//        mPlayers.stop();
         mPlayers.clean();
-        showProgress();
+        showProgressImmediateWithoutCondition();
         setMetadata();
         hidePreview();
     }
@@ -1155,11 +1156,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         App.post(() -> {
             if (mPlayers.isIjk() || (mPlayers.exo() != null &&mPlayers.exo().getPlaybackState() == Player.STATE_BUFFERING)) {
                 mBinding.widget.progress.setVisibility(View.VISIBLE);
-                mBinding.widget.progress.setVisibility(View.VISIBLE);
                 App.post(mR2, 0);
                 hideError();
             }
         }, 500);
+    }
+
+    private void showProgressImmediateWithoutCondition() {
+        mBinding.widget.progress.setVisibility(View.VISIBLE);
+        App.post(mR2, 0);
+        hideError();
     }
 
     private void hideProgress() {
