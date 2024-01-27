@@ -260,7 +260,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     @Override
     public void onOverviewIconClick(Vod item) {
-        AlertDialog dialog = new AlertDialog.Builder(getActivity()).setMessage(item.getVodContent()).create();
+        AlertDialog dialog = new AlertDialog.Builder(getActivity(), androidx.appcompat.R.style.Base_Theme_AppCompat_Dialog).setTitle("简介").setMessage(item.getVodContent()).create();
         dialog.show();
     }
 
