@@ -57,6 +57,10 @@ public class App extends Application {
         return get().activity;
     }
 
+    public static ExecutorService executor() {
+        return get().executor;
+    }
+
     public static void execute(Runnable runnable) {
         get().executor.execute(runnable);
     }
