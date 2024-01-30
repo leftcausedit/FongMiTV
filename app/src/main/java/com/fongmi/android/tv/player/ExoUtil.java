@@ -66,13 +66,14 @@ public class ExoUtil {
     private static Cache cache;
 
     public static LoadControl buildLoadControl(int times) {
+        int backBuffer = times * 30000;
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                .setBackBuffer(times * DefaultLoadControl.DEFAULT_MAX_BUFFER_MS, false)
-                .setBufferDurationsMs(
+                .setBackBuffer(backBuffer, false)
+                .setBufferDurationsMs( // minBuffer contain backBuffer?
                         times * DefaultLoadControl.DEFAULT_MIN_BUFFER_MS,
                         times * DefaultLoadControl.DEFAULT_MAX_BUFFER_MS,
                         /* DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS */ 0,
-                        /* DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS*/ 5000)
+                        DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS)
                 .build();
         return loadControl;
     }
