@@ -2,6 +2,7 @@ package com.fongmi.android.tv.api;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Handler;
 import android.widget.Toast;
 
@@ -535,8 +536,7 @@ public class Trakt {
                         deviceCode = codeResponse.optString("device_code");
                         App.post(() -> {
                             // 更新 UI 的代码
-                            TraktDialog.show((Activity) context, veriUrl, userCode);
-                            initToken();
+                            TraktDialog.show((Activity) context, veriUrl, userCode, (dialog, which) -> initToken());
                         });
                     }
                 } catch (JSONException e) {
