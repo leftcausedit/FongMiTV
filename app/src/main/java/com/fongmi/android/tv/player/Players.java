@@ -14,9 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
-import androidx.media3.common.util.Log;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.SeekParameters;
 import androidx.media3.exoplayer.analytics.AnalyticsListener;
 import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
@@ -29,7 +27,6 @@ import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
-import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
@@ -129,14 +126,18 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setupExo(PlayerView view) {
-        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl(Setting.getBuffer())).setRenderersFactory(ExoUtil.buildRenderersFactory()).setTrackSelector(ExoUtil.buildTrackSelector()).build();
+        exoPlayer = new ExoPlayer.Builder(App.get())
+                .setLoadControl(ExoUtil.buildLoadControl(Setting.getBuffer()))
+                .setRenderersFactory(ExoUtil.buildRenderersFactory())
+                .setTrackSelector(ExoUtil.buildTrackSelector())
+                .build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.addAnalyticsListener(this);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
-        exoPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
+//        exoPlayer.setSeekParameters(SeekParameters.CLOSEST_SYNC);
         view.setPlayer(exoPlayer);
     }
 
