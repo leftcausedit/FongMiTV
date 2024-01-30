@@ -130,11 +130,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 
+import dev.utils.common.FileUtils;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.IDisplayer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import okhttp3.Call;
 import okhttp3.Headers;
+import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
@@ -182,6 +184,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private String mYear;
     private Vod currentVod;
     private String traktSlug;
+    private Long urlMediaSize;
     private String traktMediaType;
     public DebugTextViewHelper debugTextViewHelper;
 
@@ -723,6 +726,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.parse.setVisibility(isFullscreen() && isUseParse() ? View.VISIBLE : View.GONE);
         mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
         setQualityVisible(result.getUrl().isMulti());
+        App.post(() -> updateFileSize(result));
         mBinding.swipeLayout.setRefreshing(false);
         checkDanmu(result.getDanmaku());
         mQualityAdapter.addAll(result);
@@ -857,21 +861,46 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onInfo() {
-        String video = "", audio = "", detail = "", buffered = "";
+        String video = "video: \n", audio = "audio: \n", detail = "", buffered = "buffered: \n", size = "size: \n", bitrate= "bitrate: \n";
         if (mPlayers.isExo()) {
-            Format format = mPlayers.exo().getAudioFormat();
-            audio = "audio: " + format.sampleMimeType + (format.codecs == null ? " " : " " + format.codecs) + String.format(Locale.CHINA, " %dch %dHz", format.channelCount, format.sampleRate) + "\n";
-            format = mPlayers.exo().getVideoFormat();
-            video = "video: " + format.sampleMimeType + " " + format.codecs + (format.frameRate == -1.0f ? "" : (" " + format.frameRate + "fps")) + "\n";
-            buffered = String.format(Locale.CHINA ,"buffered: %d sec \n", mPlayers.exo().getTotalBufferedDuration() / 1000);
+            try {
+                Format format = mPlayers.exo().getAudioFormat();
+                audio = "audio: " + format.sampleMimeType + (format.codecs == null ? " " : " " + format.codecs) + String.format(Locale.CHINA, " %dch %dHz", format.channelCount, format.sampleRate) + "\n";
+                format = mPlayers.exo().getVideoFormat();
+                video = "video: " + format.sampleMimeType + " " + format.codecs + (format.frameRate == -1.0f ? "" : (" " + format.frameRate + "fps")) + "\n";
+                buffered = String.format(Locale.CHINA ,"buffered: %d sec \n", mPlayers.exo().getTotalBufferedDuration() / 1000);
+                size = "size: " + FileUtils.formatFileSize(urlMediaSize) + "\n";
+                bitrate = "bitrate: " + FileUtils.formatFileSize(urlMediaSize / (mPlayers.getDuration() / (double) 1000)) + "/s\n";
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             detail =
                     "resolution: " + getExo().getPlayer().getVideoSize().width + " * " + getExo().getPlayer().getVideoSize().height + "\n"
-                            + buffered + video + audio
+                            + buffered + bitrate + size + video + audio
             ;
         }
 
         InfoDialog.create(this).title(mBinding.control.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).detail(detail).show();
+    }
+
+    private void updateFileSize(Result result) {
+        try {
+            Request request = new Request.Builder().url(result.getRealUrl()).head().build();
+            urlMediaSize = App.executor().submit(() -> {
+                try {
+                    Response response = OkHttp.client().newCall(request).execute();
+                    Headers headers = response.headers();
+                    return Long.parseLong(headers.get("Content-Length"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return (long) -1;
+                }
+            }).get();
+        } catch (Exception e) {
+            e.printStackTrace();
+            urlMediaSize = (long) -1;
+        }
     }
 
     private void onFull() {
