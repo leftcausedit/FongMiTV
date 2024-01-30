@@ -39,6 +39,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.Format;
 import androidx.media3.common.Player;
 import androidx.media3.common.Tracks;
+import androidx.media3.exoplayer.util.DebugTextViewHelper;
 import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
@@ -182,6 +183,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private Vod currentVod;
     private String traktSlug;
     private String traktMediaType;
+    public DebugTextViewHelper debugTextViewHelper;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -481,6 +483,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mPlayers.set(getExo(), getIjk());
         if (isPort() && ResUtil.isLand(this)) enterFullscreen();
         getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        if (mPlayers.isExo()) debugTextViewHelper = new DebugTextViewHelper(mPlayers.exo(), mBinding.debugHelper);
         setSubtitleFraction();
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);

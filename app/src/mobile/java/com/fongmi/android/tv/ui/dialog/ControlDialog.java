@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.media3.exoplayer.util.DebugTextViewHelper;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
@@ -96,7 +97,8 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.opening.setText(parent.control.action.opening.getText());
         binding.loop.setActivated(parent.control.action.loop.isActivated());
         binding.timer.setActivated(Timer.get().isRunning());
-        binding.indexOffset.setActivated( ( (VideoActivity) activity ).getIndexOffset() != 0);
+        binding.indexOffset.setActivated(((VideoActivity) activity).getIndexOffset() != 0);
+        binding.debugHelper.setActivated(parent.debugHelper.isActivated());
         setTrackVisible();
         setScaleText();
         setParse();
@@ -107,6 +109,7 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.timer.setOnClickListener(this::onTimer);
         binding.indexOffset.setOnClickListener(this::onIndexOffset);
         binding.indexOffset.setOnLongClickListener(this::onLongIndexOffset);
+        binding.debugHelper.setOnClickListener(this::onDebugHelper);
         binding.speed.addOnChangeListener(this::setSpeed);
         for (TextView view : scales) view.setOnClickListener(this::setScale);
         binding.text.setOnClickListener(v -> dismiss(parent.control.action.text));
@@ -120,6 +123,20 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.player.setOnLongClickListener(v -> longClick(binding.player, parent.control.action.player));
         binding.ending.setOnLongClickListener(v -> longClick(binding.ending, parent.control.action.ending));
         binding.opening.setOnLongClickListener(v -> longClick(binding.opening, parent.control.action.opening));
+    }
+
+    private void onDebugHelper(View view) {
+        if (parent.debugHelper.isActivated()) {
+            ((VideoActivity) activity).debugTextViewHelper.stop();
+            parent.debugHelper.setActivated(false);
+            binding.debugHelper.setActivated(false);
+            parent.debugHelper.setVisibility(View.GONE);
+        } else {
+            ((VideoActivity) activity).debugTextViewHelper.start();
+            parent.debugHelper.setActivated(true);
+            binding.debugHelper.setActivated(true);
+            parent.debugHelper.setVisibility(View.VISIBLE);
+        }
     }
 
     private void onIndexOffset(View view) {
