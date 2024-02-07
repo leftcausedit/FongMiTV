@@ -20,6 +20,7 @@ import com.android.cast.dlna.dmr.DLNARendererService;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -344,8 +345,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Vod item) {
+        if (Setting.isAggregatedSearch()) CollectActivity.start(this, item.getVodName());
+//        else VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
         // VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
-        if (item.isFolder()) {
+        else if (item.isFolder()) {
             VodActivity.start(this, Result.folder(item));
         } else if (item.isPhoto()) {
             List<Vod> vodList = new ArrayList<>();

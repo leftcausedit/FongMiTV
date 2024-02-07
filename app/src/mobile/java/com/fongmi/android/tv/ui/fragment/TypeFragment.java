@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Page;
@@ -230,7 +231,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
             //getVideo(item.getVodId(), "1");
             FolderActivity.start(getActivity(), getKey(), Result.folder(item));
         } else {
-            if (item.isManga() || item.isDetail()) DetailActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodRemarks());
+            if (Setting.isAggregatedSearch()) CollectActivity.start(getActivity(), item.getVodName());
+            else if (item.isManga() || item.isDetail()) DetailActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodRemarks());
             else if (item.isPhoto()) PhotoActivity.start(getActivity(), mAdapter.getList(), mAdapter.getItemPosition(item));
             else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), (isFolder() && isList()) ? item.getVodName() : null, false);
         }
