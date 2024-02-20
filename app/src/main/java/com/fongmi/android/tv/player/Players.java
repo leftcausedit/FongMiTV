@@ -589,8 +589,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
             if (data == null || data.getExtras() == null) return;
             int position = data.getExtras().getInt("position", 0);
             String endBy = data.getExtras().getString("end_by", "");
-            if (endBy.equals("playback_completion")) seekTo((int) getDuration());
-            if (endBy.equals("user")) seekTo(position);
+            if (endBy.equals("playback_completion")) seekTo((long) getDuration());
+            if (endBy.equals("user")) seekTo((long) position);
         } catch (Exception e) {
             e.printStackTrace();
         }
