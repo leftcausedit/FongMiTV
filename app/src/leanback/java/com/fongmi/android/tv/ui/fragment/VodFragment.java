@@ -19,7 +19,6 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Page;
@@ -98,6 +97,10 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
 
     private Site getSite() {
         return VodConfig.get().getSite(getKey());
+    }
+
+    private boolean isIndexs() {
+        return getSite().isIndexs();
     }
 
     private Page getLastPage() {
@@ -290,7 +293,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
             // getVideo(item.getVodId(), "1");
             VodActivity.start(getActivity(), getKey(), Result.folder(item));
         } else {
-            if (Setting.isAggregatedSearch()) CollectActivity.start(getActivity(), item.getVodName());
+            if (isIndexs()) CollectActivity.start(getActivity(), item.getVodName());
             else if (!isFolder() || !isList()) VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
             else if (item.isPhoto()) PhotoActivity.start(getActivity(), vodList, vodList.indexOf(item));
             else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodName());

@@ -104,6 +104,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         Updater.get().release().start(this);
         mResult = Result.empty();
         Server.get().start();
+        setTitleView();
         setRecyclerView();
         setViewModel();
         setAdapter();
@@ -139,6 +140,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 VideoActivity.push(this, intent.getData().toString());
             }
         }
+    }
+
+    private void setTitleView() {
+        mBinding.homeSiteLock.setVisibility(Setting.isHomeSiteLock() ? View.VISIBLE : View.GONE);
     }
 
     private void setRecyclerView() {
@@ -345,7 +350,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Vod item) {
-        if (Setting.isAggregatedSearch()) CollectActivity.start(this, item.getVodName());
+        if (getHome().isIndexs()) CollectActivity.start(this, item.getVodName());
 //        else VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
         // VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
         else if (item.isFolder()) {
@@ -427,6 +432,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void showDialog() {
+        if (Setting.isHomeSiteLock()) return;
         SiteDialog.create(this).show();
     }
 
@@ -527,6 +533,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onResume() {
         super.onResume();
         mClock.start();
+        setTitleView();
     }
 
     @Override

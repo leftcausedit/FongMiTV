@@ -39,7 +39,7 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[Setting.getSize()]);
         mBinding.danmuSyncText.setText(getSwitch(Setting.isDanmuSync()));
         mBinding.speedText.setText(Setting.getPlaySpeed() + "x");
-        mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
+        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
     }
 
     @Override
@@ -49,7 +49,7 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.danmuSync.setOnClickListener(this::setDanmuSync);
         mBinding.speed.setOnClickListener(this::setSpeed);
         mBinding.speed.setOnLongClickListener(this::resetSpeed);
-        mBinding.aggregatedSearch.setOnClickListener(this::setAggregatedSearch);
+        mBinding.incognito.setOnClickListener(this::setIncognito);
     }
 
     private boolean onTitle(View view) {
@@ -85,10 +85,9 @@ public class SettingCustomFragment extends BaseFragment {
         return true;
     }
 
-    private void setAggregatedSearch(View view) {
-        Setting.putAggregatedSearch(!Setting.isAggregatedSearch());
-        mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
+    private void setIncognito(View view) {
+        Setting.putIncognito(!Setting.isIncognito());
+        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
     }
-
 
 }
