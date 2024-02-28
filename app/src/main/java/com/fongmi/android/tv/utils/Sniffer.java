@@ -20,22 +20,21 @@ public class Sniffer {
     public static final Pattern URL = Pattern.compile("(http|https):[^\\s]+");
     public static final Pattern HYPERLINK = Pattern.compile("\\[hyperlink=(.*?)](.*?)\\[/hyperlink]");
     public static final Pattern SNIFFER = Pattern.compile("http((?!http).){12,}?\\.(m3u8|mp4|mkv|flv|mp3|m4a|aac)\\?.*|http((?!http).){12,}\\.(m3u8|mp4|mkv|flv|mp3|m4a|aac)|http((?!http).)*?video/tos*|http((?!http).)*?obj/tos*");
+    public static final Pattern THUNDER = Pattern.compile("(magnet|thunder|ed2k):.*");
 
-    public static final List<String> THUNDER = Arrays.asList("thunder", "magnet", "ed2k");
+    public static boolean isThunder(String url) {
+        return THUNDER.matcher(url).find() || isTorrent(url);
+    }
+
+    public static boolean isTorrent(String url) {
+        return !url.startsWith("magnet") && url.split(";")[0].endsWith(".torrent");
+    }
 
     public static String getUrl(String text) {
         if (Json.valid(text)) return text;
         Matcher m = AI_PUSH.matcher(text);
         if (m.find()) return m.group(0);
         return text;
-    }
-
-    public static boolean isThunder(String url) {
-        return THUNDER.contains(UrlUtil.scheme(url)) || isTorrent(url);
-    }
-
-    public static boolean isTorrent(String url) {
-        return !url.startsWith("magnet") && url.split(";")[0].endsWith(".torrent");
     }
 
     public static boolean isVideoFormat(String url) {
