@@ -61,7 +61,7 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
         this.player = player;
     }
 
-    private void setPosition(long positionMs) {
+    public void setPosition(long positionMs) {
         timeBar.setPosition(positionMs);
     }
 
