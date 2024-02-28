@@ -94,6 +94,7 @@ import com.fongmi.android.tv.ui.dialog.DanmuDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
+import com.fongmi.android.tv.ui.dialog.RealTitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.ui.dialog.IndexOffsetDialog;
 import com.fongmi.android.tv.utils.Clock;
@@ -142,7 +143,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener, InfoDialog.Listener, IndexOffsetDialog.Callback {
+public class VideoActivity extends BaseActivity
+        implements Clock.Callback,
+        CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener,
+        FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener,
+        SubtitleCallback, CastDialog.Listener, InfoDialog.Listener, IndexOffsetDialog.Callback, RealTitleDialog.Callback {
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
@@ -188,6 +193,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private Long urlMediaSize;
     private String traktMediaType;
     public DebugTextViewHelper debugTextViewHelper;
+    private String realTitle;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -628,7 +634,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setCurrentVod(item);
         mBinding.progressLayout.showContent();
         mBinding.video.setTag(item.getVodPic(getPic()));
-        mBinding.name.setText(item.getVodName(getName()));
+//        mBinding.name.setText(item.getVodName(getName()));
+        mBinding.name.setText(getName().isEmpty() ? item.getVodName() : getName());
         setText(mBinding.remark, 0, item.getVodRemarks());
         setText(mBinding.site, R.string.detail_site, getSite().getName());
         setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()).toString());
@@ -2104,7 +2111,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                         else msg = item.optString("name") + " S" + season + "E" + episodePos + " " + item.optString("first_air_date").replaceAll("-", ".") + " " + finalType.toUpperCase();
                         App.post(() -> setText(mBinding.traktItem, R.string.detail_trakt, msg));
                     } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        e.printStackTrace();
                     }
                 }
             });
@@ -2142,5 +2149,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void callTraktScrobbleOnIndexOffsetChange() {
         if (mPlayers.isPlaying()) onScrobbleStart();
         else onScrobblePause();
+    }
+
+    @Override
+    public void setRealTitle(String string) {
+        this.realTitle = string;
+        mHistory.setVodName(realTitle);
+        mBinding.name.setText(realTitle);
+    }
+
+    public String getRealTitle() {
+        return realTitle == null ? getName() : realTitle;
     }
 }

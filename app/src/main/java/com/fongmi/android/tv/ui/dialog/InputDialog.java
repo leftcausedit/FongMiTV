@@ -56,6 +56,7 @@ public class InputDialog {
         mBinding.detail.setText(detail);
         if (detail == null || detail.isEmpty()) mBinding.detail.setVisibility(View.GONE);
         mBinding.input.setHint(preInput);
+        mBinding.input.setText(preInput);
     }
 
     private void initDialog() {

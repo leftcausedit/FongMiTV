@@ -157,6 +157,7 @@
     <string name="lines">lines</string>
     <string name="index_offset">Index Offset</string>
     <string name="debug_helper">debug</string>
+    <string name="real_title">real title</string>
 
     <string-array name="select_decode">
         <item>Soft</item>

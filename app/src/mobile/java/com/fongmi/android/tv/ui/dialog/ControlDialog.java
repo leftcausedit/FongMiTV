@@ -114,6 +114,7 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.timer.setOnClickListener(this::onTimer);
         binding.indexOffset.setOnClickListener(this::onIndexOffset);
         binding.indexOffset.setOnLongClickListener(this::onLongIndexOffset);
+        binding.realTitle.setOnClickListener(this::onRealTitle);
         binding.debugHelper.setOnClickListener(this::onDebugHelper);
         binding.speed.addOnChangeListener(this::setSpeed);
         for (TextView view : scales) view.setOnClickListener(this::setScale);
@@ -177,8 +178,18 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
     }
 
     private void onIndexOffset(View view) {
-        App.post(() -> IndexOffsetDialog.create(activity, (IndexOffsetDialog.Callback) activity).title("集数偏移").detail(Integer.toString(((VideoActivity) activity).getIndexOffset()))
-                .preInput(Integer.toString(((VideoActivity) activity).getIndexOffset())).show(), 200);
+        App.post(() -> IndexOffsetDialog.create(activity, (IndexOffsetDialog.Callback) activity).title("集数偏移")
+                .preInput(
+                        Integer.toString(((VideoActivity) activity).getIndexOffset())
+                ).show(), 200);
+        dismiss();
+    }
+
+    private void onRealTitle(View view) {
+        App.post(() -> RealTitleDialog.create(activity, (RealTitleDialog.Callback) activity).title(ResUtil.getString(R.string.real_title))
+                .preInput(
+                        ((VideoActivity) activity).getRealTitle()
+                ).show(), 200);
         dismiss();
     }
 

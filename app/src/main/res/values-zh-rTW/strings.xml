@@ -157,6 +157,7 @@
     <string name="index_offset">集數偏移</string>
     <string name="lines">行</string>
     <string name="debug_helper">調試</string>
+    <string name="real_title">標題訂正</string>
 
     <string-array name="select_decode">
         <item>軟解</item>
