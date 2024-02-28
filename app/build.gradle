@@ -87,11 +87,11 @@ android {
             setIgnore(true)
         }
 
-        if (names.contains("python")) {
-            dependencies {
-                implementation project(':pyramid')
-            }
-        }
+//        if (names.contains("python")) {
+//            dependencies {
+//                implementation project(':pyramid')
+//            }
+//        }
     }
 
     packagingOptions {
