@@ -186,6 +186,7 @@ public class VideoActivity extends BaseActivity
     private Runnable mR3;
     private Runnable mR4;
     private Runnable mRScrobbleStart;
+    private Runnable mRShowProgress;
     private Clock mClock;
     private PiP mPiP;
     private String mYear;
@@ -371,6 +372,7 @@ public class VideoActivity extends BaseActivity
         mR3 = this::setOrient;
         mR4 = this::showEmpty;
         mRScrobbleStart = this::onScrobbleStart;
+        mRShowProgress = this::showProgressImmediateWithoutCondition;
         mPiP = new PiP();
         setForeground(true);
         setActivityBackground();
@@ -379,7 +381,7 @@ public class VideoActivity extends BaseActivity
         setDisplayView();
         setDanmuView();
         setViewModel();
-        showProgress();
+        App.post(mRShowProgress, 500);
         checkId();
     }
 
@@ -1247,6 +1249,7 @@ public class VideoActivity extends BaseActivity
     }
 
     private void hideProgress() {
+        App.removeCallbacks(mRShowProgress);
         mBinding.widget.progress.setVisibility(View.GONE);
         App.removeCallbacks(mR2);
         Traffic.reset();
@@ -1492,7 +1495,7 @@ public class VideoActivity extends BaseActivity
             case Player.STATE_IDLE:
                 break;
             case Player.STATE_BUFFERING:
-                showProgress();
+                App.post(mRShowProgress, 500);
                 break;
             case Player.STATE_READY:
                 App.post(mRScrobbleStart, 1000); // make sure more than 1 sec between scrobbleStop and last call;
@@ -1907,7 +1910,7 @@ public class VideoActivity extends BaseActivity
         mBinding.widget.seek.setVisibility(View.GONE);
         mBinding.widget.seekBar.setVisibility(View.GONE);
         mPlayers.seekTo(time);
-        showProgress();
+        App.post(mRShowProgress, 500);
         onPlay();
     }
 
