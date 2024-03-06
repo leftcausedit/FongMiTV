@@ -35,7 +35,7 @@ public class FuncPresenter extends Presenter {
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object object) {
         Func item = (Func) object;
         ViewHolder holder = (ViewHolder) viewHolder;
-        holder.binding.getRoot().setId(item.getId());
+        if (item.getId() > 0) holder.binding.getRoot().setId(item.getId());
         holder.binding.text.setText(item.getText());
         holder.binding.icon.setImageResource(item.getDrawable());
         holder.binding.getRoot().setClipToOutline(false); // tested clipToOutLine, clipToPadding, clipChildren; this is to enable shadow of the childView in viewHolder, can't set it in xml, may because Presenter will override it;

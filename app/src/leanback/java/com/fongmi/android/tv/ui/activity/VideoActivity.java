@@ -322,7 +322,9 @@ public class VideoActivity
         if (hasKeyEvent) return;
         getEpisodeView().postDelayed(() -> {
             View selectedItem = getEpisodeView().getLayoutManager().findViewByPosition(position);
+            View focusedView = getCurrentFocus();
             if (selectedItem != null) selectedItem.requestFocus();
+            if (focusedView == mBinding.video) mBinding.video.requestFocus();
         }, 300);
     }
 
@@ -413,6 +415,7 @@ public class VideoActivity
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
                 if (child != null) mFocus1 = child.itemView;
+                setEpisodeChildKeyListener(child, position);
             }
         });
         mBinding.array.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
@@ -421,6 +424,25 @@ public class VideoActivity
                 if (mEpisodeAdapter.size() > getGroupSize() && position > 1 && hasKeyEvent) setEpisodeSelectedPosition((position - 2) * getGroupSize());
             }
         });
+    }
+
+    private void setEpisodeChildKeyListener(RecyclerView.ViewHolder child, int position) {
+        if (getEpisodeView() != mBinding.episodeVert) return;
+        int itemCount = getEpisodeView().getAdapter().getItemCount();
+        if (itemCount <= 0) return;
+        int columns = mEpisodePresenter.getNumColumns();
+        if ((position + columns >= itemCount) && ((position % columns) + 1 > (itemCount % columns))) {
+            child.itemView.setOnKeyListener(new View.OnKeyListener() {
+                @Override
+                public boolean onKey(View v, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.getAction() == KeyEvent.ACTION_DOWN) {
+                        View lastItem =  getEpisodeView().getLayoutManager().findViewByPosition(itemCount - 1);
+                        if (lastItem != null) lastItem.requestFocus();
+                    }
+                    return false;
+                }
+            });
+        }
     }
 
     private boolean onIndexOffsetKeyEvent(View view, int keyCode, KeyEvent event) {
@@ -705,6 +727,7 @@ public class VideoActivity
             if (length > episodeNameLength) episodeNameLength = length;
         }
         int numColumns = 10;
+        if (episodeNameLength > 60) numColumns = 1;
         if (episodeNameLength > 30) numColumns = 2;
         else if (episodeNameLength > 15) numColumns = 3;
         else if (episodeNameLength > 10) numColumns = 4;
@@ -813,11 +836,11 @@ public class VideoActivity
         mFlagPresenter.setNextFocusDown(findFocusDown(0));
         mArrayPresenter.setNextFocusUp(findFocusUp(3));
         mPartPresenter.setNextFocusUp(findFocusUp(5));
-        notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
-        notifyItemChanged(mBinding.quality, mQualityAdapter);
-        notifyItemChanged(mBinding.part, mPartAdapter);
-        notifyItemChanged(mBinding.array, mArrayAdapter);
         notifyItemChanged(mBinding.flag, mFlagAdapter);
+        notifyItemChanged(mBinding.quality, mQualityAdapter);
+        notifyItemChanged(mBinding.array, mArrayAdapter);
+        notifyItemChanged(getEpisodeView(), mEpisodeAdapter);
+        notifyItemChanged(mBinding.part, mPartAdapter);
     }
 
     private void showDisplayInfo() {
@@ -1244,13 +1267,13 @@ public class VideoActivity
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 List<String> items = Part.get(response.body().string());
                 if (!items.contains(finalSource)) items.add(0, finalSource);
-                App.post(() -> setPartAdapter(items));
+                App.post(() -> setPartAdapter(items), 1000);
             }
 
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 List<String> items = Arrays.asList(finalSource);
-                App.post(() -> setPartAdapter(items));
+                App.post(() -> setPartAdapter(items), 1000);
             }
         });
     }
@@ -1682,7 +1705,7 @@ public class VideoActivity
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         hasKeyEvent = true;
-        if (!isFullscreen() && KeyUtil.isBackKey(event) && Setting.getSmallWindowBackKey() == 1 && getCurrentFocus() != mBinding.video) {
+        if (mBinding.progressLayout.isContent() && !isFullscreen() && KeyUtil.isBackKey(event) && Setting.getSmallWindowBackKey() == 1 && getCurrentFocus() != mBinding.video) {
             mFocus1 = mBinding.video;
             getFocus1().requestFocus();
             return true;

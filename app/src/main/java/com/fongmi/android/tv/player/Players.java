@@ -561,13 +561,13 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         Uri uri = UrlUtil.uri(url);
         String host = UrlUtil.host(uri);
         String scheme = UrlUtil.scheme(uri);
-        if (scheme.equals("data")) return false;
-        return scheme.isEmpty() || scheme.equals("file") ? !Path.exists(url) : host.isEmpty();
+        if ("data".equals(scheme)) return false;
+        return scheme.isEmpty() || "file".equals(scheme) ? !Path.exists(url) : host.isEmpty();
     }
 
     public static Map<String, String> checkUa(Map<String, String> headers) {
         if (Setting.getUa().isEmpty()) return headers;
-        for (Map.Entry<String, String> header : headers.entrySet()) if (header.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT)) return headers;
+        for (Map.Entry<String, String> header : headers.entrySet()) if (HttpHeaders.USER_AGENT.equalsIgnoreCase(header.getKey())) return headers;
         headers.put(HttpHeaders.USER_AGENT, Setting.getUa());
         return headers;
     }
@@ -587,8 +587,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
             if (data == null || data.getExtras() == null) return;
             int position = data.getExtras().getInt("position", 0);
             String endBy = data.getExtras().getString("end_by", "");
-            if (endBy.equals("playback_completion")) seekTo((long) getDuration());
-            if (endBy.equals("user")) seekTo((long) position);
+            if ("playback_completion".equals(endBy)) seekTo((long) getDuration());
+            if ("user".equals(endBy)) seekTo((long) position);
         } catch (Exception e) {
             e.printStackTrace();
         }

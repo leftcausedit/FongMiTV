@@ -20,7 +20,7 @@ import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.databinding.DialogControlBinding;
 import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.player.Timer;
+import com.fongmi.android.tv.utils.Timer;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.ParseAdapter;
 import com.fongmi.android.tv.ui.base.ViewType;
