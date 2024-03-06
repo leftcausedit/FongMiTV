@@ -4,12 +4,14 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,6 +23,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -196,6 +199,8 @@ public class VideoActivity extends BaseActivity
     private String traktMediaType;
     public DebugTextViewHelper debugTextViewHelper;
     private String realTitle;
+    private AudioManager audioManager;
+    private boolean pressSpeeding;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -383,6 +388,11 @@ public class VideoActivity extends BaseActivity
         setViewModel();
         App.post(mRShowProgress, 500);
         checkId();
+        initAudioManager();
+    }
+
+    private void initAudioManager() {
+        this.audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
     }
 
 
@@ -1850,6 +1860,7 @@ public class VideoActivity extends BaseActivity
     @Override
     public void onSpeedUp() {
         if (!mPlayers.isPlaying()) return;
+        pressSpeeding = true;
         mBinding.control.action.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 2 ? 2 : (mPlayers.getSpeed() < 3 ? 3 : 5)));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
@@ -1857,6 +1868,7 @@ public class VideoActivity extends BaseActivity
 
     @Override
     public void onSpeedEnd() {
+        pressSpeeding = false;
         mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
         mBinding.widget.speed.setVisibility(View.GONE);
         mBinding.widget.speed.clearAnimation();
@@ -1909,7 +1921,7 @@ public class VideoActivity extends BaseActivity
     public void onSeekEnd(int time) {
         mBinding.widget.seek.setVisibility(View.GONE);
         mBinding.widget.seekBar.setVisibility(View.GONE);
-        mPlayers.seekTo(time);
+        mPlayers.seekTo(time); // millisecond
         App.post(mRShowProgress, 500);
         onPlay();
     }
@@ -2166,5 +2178,73 @@ public class VideoActivity extends BaseActivity
 
     public String getRealTitle() {
         return realTitle == null ? getName() : realTitle;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        // 获取按键动作
+        int action = event.getAction();
+
+        // 只处理按下动作
+        if (action == KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+            int volume;
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    volume = volumeUp();
+                    onVolume(volume);
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    volume = volumeDown();
+                    onVolume(volume);
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    onSeekEnd(5000);
+                    return true;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    onSeekEnd(-5000);
+                    return true;
+                case KeyEvent.KEYCODE_SPACE:
+                    checkPlay();
+                    return true;
+                case KeyEvent.KEYCODE_ENTER:
+                    onDoubleTap();
+                    return true;
+                case KeyEvent.KEYCODE_Q:
+                    exitFullscreen();
+                    return true;
+            }
+        }
+        if (event.getKeyCode() == KeyEvent.KEYCODE_Z) {
+            if (action == KeyEvent.ACTION_DOWN &&
+                    event.getRepeatCount() > 0) {
+                if (!pressSpeeding) onSpeedUp();
+                return true;
+            } else if (action == KeyEvent.ACTION_UP){
+                if (pressSpeeding) {
+                    onSpeedEnd();
+                    return true;
+                }
+            }
+        }
+
+        // 其他情况下，使用默认的按键事件处理
+        return super.dispatchKeyEvent(event);
+    }
+
+    private int volumeUp() {
+        int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int targetVolume = (int) Math.min(maxVolume, volume + 0.05 * maxVolume);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, 0);
+        return targetVolume;
+    }
+
+    private int volumeDown() {
+        int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int targetVolume = (int) Math.max(0, volume - 0.05 * maxVolume);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, 0);
+        return targetVolume;
     }
 }
