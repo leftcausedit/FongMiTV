@@ -132,6 +132,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -769,7 +770,8 @@ public class VideoActivity extends BaseActivity
         setQualityVisible(result.getUrl().isMulti());
         App.post(() -> updateFileSize(result));
         mBinding.swipeLayout.setRefreshing(false);
-        checkDanmu(result.getDanmaku());
+        if (!result.getDanmaku().isEmpty()) checkDanmu(result.getDanmaku());
+        else checkDanmu();
         mQualityAdapter.addAll(result);
     }
 
@@ -2166,7 +2168,46 @@ public class VideoActivity extends BaseActivity
             mHistory.update();
             callTraktScrobbleOnIndexOffsetChange();
             App.post(this::callTraktScrobbleOnIndexOffsetChange, 1000); // change the delay, 1 sec is enough
+            checkDanmu();
         }
+    }
+
+    private void checkDanmu() {
+//        String danmaku = "";
+//        try {
+//            danmaku = App.executor().submit(this::getDanmakuFromConfig).get();
+//        } catch (Exception e) {
+//            danmaku = "";
+//            e.printStackTrace();
+//        }
+//        checkDanmu(danmaku);
+
+        App.executor().execute(() -> {
+            String danmaku = "";
+            try {
+                danmaku = getDanmakuFromConfig();
+            } catch (Exception e) {
+                danmaku = "";
+                e.printStackTrace();
+            }
+
+            // 更新界面
+            String finalDanmaku = danmaku;
+            runOnUiThread(() -> {
+                checkDanmu(finalDanmaku);
+            });
+        });
+    }
+
+    private String getDanmakuFromConfig() {
+        Site site = VodConfig.get().getSite(getKey());
+        String danmaku = "";
+        if (site.getType() == 3) {
+             danmaku = VodConfig.get().getDanmaku(mBinding.name.getText().toString(),
+                    mEpisodeAdapter.getActivated().getPosition() + getIndexOffset(),
+                    site);
+        }
+        return danmaku;
     }
 
     private void callTraktScrobbleOnIndexOffsetChange() {

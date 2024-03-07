@@ -119,6 +119,24 @@ public class JarLoader {
         }
     }
 
+    public String getDanmaku(String title, int episodeNumber, String jar) {
+        try {
+            jar = "";
+            String jaKey = Util.md5(jar);
+            Method method;
+            if (!loaders.containsKey(jaKey)) parseJar(jaKey, jar);
+            if (!methods.containsKey(jaKey + "getDanmaku")) {
+                Class<?> danmakuClass = loaders.get(jaKey).loadClass("com.github.catvod.danmaku.Danmaku");
+                method = danmakuClass.getMethod("getDanmaku", String.class, int.class);
+                methods.put(jaKey + "getDanmaku", method);
+            } else method = methods.get(jaKey + "getDanmaku");
+            return (String) method.invoke(null, title, episodeNumber);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     public JSONObject jsonExt(String key, LinkedHashMap<String, String> jxs, String url) throws Throwable {
         Class<?> clz = loaders.get("").loadClass("com.github.catvod.parser.Json" + key);
         Method method = clz.getMethod("parse", LinkedHashMap.class, String.class);

@@ -239,6 +239,11 @@ public class VodConfig {
         else return new SpiderNull();
     }
 
+    public String getDanmaku(String title, int episodeNumber, Site site) {
+        if (site.getApi().startsWith("csp_")) return jarLoader.getDanmaku(title, episodeNumber, site.getJar());
+        return "";
+    }
+
     public void setRecent(Site site) {
         boolean js = site.getApi().contains(".js");
         boolean py = site.getApi().contains(".py");
