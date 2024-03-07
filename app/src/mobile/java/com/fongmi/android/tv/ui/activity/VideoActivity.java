@@ -190,6 +190,8 @@ public class VideoActivity extends BaseActivity
     private Runnable mR4;
     private Runnable mRScrobbleStart;
     private Runnable mRShowProgress;
+    private Runnable mRHideVolume;
+    private Runnable mRFastSeek;
     private Clock mClock;
     private PiP mPiP;
     private String mYear;
@@ -201,6 +203,7 @@ public class VideoActivity extends BaseActivity
     private String realTitle;
     private AudioManager audioManager;
     private boolean pressSpeeding;
+    private int fastSeekCount = 0;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -378,6 +381,8 @@ public class VideoActivity extends BaseActivity
         mR4 = this::showEmpty;
         mRScrobbleStart = this::onScrobbleStart;
         mRShowProgress = this::showProgressImmediateWithoutCondition;
+        mRHideVolume = this::onVolumeEnd;
+        mRFastSeek = this::fastSeek;
         mPiP = new PiP();
         setForeground(true);
         setActivityBackground();
@@ -2191,24 +2196,38 @@ public class VideoActivity extends BaseActivity
             int volume;
             switch (keyCode) {
                 case KeyEvent.KEYCODE_DPAD_UP:
+                    App.removeCallbacks(mRHideVolume);
                     volume = volumeUp();
                     onVolume(volume);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_DOWN:
+                    App.removeCallbacks(mRHideVolume);
                     volume = volumeDown();
                     onVolume(volume);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    onSeekEnd(5000);
+                    if (fastSeekCount == 0) App.post(mRFastSeek,500);
+                    else {
+                        App.removeCallbacks(mRFastSeek);
+                        App.post(mRFastSeek,300);
+                    }
+                    fastSeekCount++;
+                    onSeek(5000 * fastSeekCount);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
-                    onSeekEnd(-5000);
+                    if (fastSeekCount == 0) App.post(mRFastSeek,500);
+                    else {
+                        App.removeCallbacks(mRFastSeek);
+                        App.post(mRFastSeek,300);
+                    }
+                    fastSeekCount--;
+                    onSeek(5000 * fastSeekCount);
                     return true;
                 case KeyEvent.KEYCODE_SPACE:
                     checkPlay();
                     return true;
                 case KeyEvent.KEYCODE_ENTER:
-                    onDoubleTap();
+                    toggleFullscreen();
                     return true;
                 case KeyEvent.KEYCODE_Q:
                     exitFullscreen();
@@ -2228,8 +2247,22 @@ public class VideoActivity extends BaseActivity
             }
         }
 
+        if (action == KeyEvent.ACTION_UP) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    App.post(mRHideVolume, 1000);
+                    return true;
+            }
+        }
+
         // 其他情况下，使用默认的按键事件处理
         return super.dispatchKeyEvent(event);
+    }
+
+    private void fastSeek() {
+        onSeekEnd(5000 * fastSeekCount);
+        fastSeekCount = 0;
     }
 
     private int volumeUp() {
