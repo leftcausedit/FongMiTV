@@ -457,9 +457,9 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         mPlayer.setOption(codec, "skip_loop_filter", 48);
         mPlayer.setOption(format, "dns_cache_clear", 1);
         mPlayer.setOption(format, "dns_cache_timeout", -1);
-//        mPlayer.setOption(format, "fflags", "fastseek"); // 打开 enable-accurate-seek 后 fastseek开着会让 seek 变得超级慢
+        mPlayer.setOption(format, "fflags", "fastseek"); // 打开 enable-accurate-seek 后 fastseek开着会让 seek 变得超级慢
         mPlayer.setOption(format, "http-detect-range-support", 0);
-        mPlayer.setOption(player, "enable-accurate-seek", 1);
+        mPlayer.setOption(player, "enable-accurate-seek", 0);
         mPlayer.setOption(player, "framedrop", 1);
         mPlayer.setOption(player, "max-buffer-size", 15 * 1024 * 1024);
         mPlayer.setOption(player, "mediacodec", mCurrentDecode);
