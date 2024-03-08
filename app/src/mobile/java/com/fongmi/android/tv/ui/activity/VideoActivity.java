@@ -53,8 +53,10 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.Trakt;
+import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
@@ -609,6 +611,15 @@ public class VideoActivity extends BaseActivity
     }
 
     private void getDetail() {
+        if ("WebdavBackup".equals(getKey()) && getId().equals("backup")) {
+            AppDatabase.backup(new Callback() {
+                @Override
+                public void success() {
+                    mViewModel.detailContent(getKey(), getId());
+                }
+            });
+            return;
+        }
         mViewModel.detailContent(getKey(), getId());
     }
 
@@ -625,11 +636,41 @@ public class VideoActivity extends BaseActivity
     }
 
     private void setDetail(Result result) {
+        if ("WebdavBackup".equals(getKey()) && getId().equals("restore")) onRestore();
         mBinding.swipeLayout.setRefreshing(false);
         if (result.getList().isEmpty()) setEmpty(result.hasMsg());
         else setDetail(result.getList().get(0));
         Notify.show(result.getMsg());
     }
+
+    private void onRestore() {
+        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.restoreWithoutPrefer(new Callback() {
+            @Override
+            public void success() {
+                if (allGranted) {
+                    WallConfig.get().init();
+                    LiveConfig.get().init().load();
+                    VodConfig.get().init().load(new Callback() {
+                        @Override
+                        public void success() {
+                            RefreshEvent.config();
+                            RefreshEvent.video();
+                        }
+
+                        @Override
+                        public void error(String msg) {
+                            if (TextUtils.isEmpty(msg) && AppDatabase.getBackup().exists()) onRestore();
+                            else RefreshEvent.empty();
+                            RefreshEvent.config();
+                            Notify.show(msg);
+                        }
+                    });
+                }
+                else RefreshEvent.empty();
+            }
+        }));
+    }
+
 
     private void setEmpty(boolean finish) {
         if (isFromCollect() || finish) {

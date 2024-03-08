@@ -88,6 +88,20 @@ public abstract class AppDatabase extends RoomDatabase {
         });
     }
 
+    public static void restoreWithoutPrefer(com.fongmi.android.tv.impl.Callback callback) {
+        App.execute(() -> {
+            File db = new File(Path.tv(), NAME);
+            File wal = new File(Path.tv(), NAME + "-wal");
+            File shm = new File(Path.tv(), NAME + "-shm");
+            File pref = new File(Path.tv(), NAME + "-pref");
+            if (db.exists()) Path.copy(db, App.get().getDatabasePath(db.getName()).getAbsoluteFile());
+            if (wal.exists()) Path.copy(wal, App.get().getDatabasePath(wal.getName()).getAbsoluteFile());
+            if (shm.exists()) Path.copy(shm, App.get().getDatabasePath(shm.getName()).getAbsoluteFile());
+//            if (pref.exists()) Prefers.restore(pref);
+            App.post(callback::success);
+        });
+    }
+
     private static AppDatabase create(Context context) {
         return Room.databaseBuilder(context, AppDatabase.class, NAME)
                 .addMigrations(MIGRATION_11_12)
