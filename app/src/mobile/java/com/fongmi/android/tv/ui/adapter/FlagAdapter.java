@@ -58,7 +58,13 @@ public class FlagAdapter extends RecyclerView.Adapter<FlagAdapter.ViewHolder> {
     }
 
     public void reverse() {
-        for (Flag item : mItems) Collections.reverse(item.getEpisodes());
+        for (Flag item : mItems) {
+            List<Episode> episodes = item.getEpisodes();
+            Collections.reverse(episodes);
+            for (Episode episode : episodes) {
+                episode.setPosition(episodes.size() + 1 - episode.getPosition());
+            }
+        }
     }
 
     public boolean isEmpty() {
