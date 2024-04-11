@@ -40,6 +40,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.api.WebDavBackup;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.Trakt;
 import com.fongmi.android.tv.bean.Episode;
@@ -164,6 +165,7 @@ public class VideoActivity
     private Runnable mR3;
     private Runnable mR4;
     private Runnable mRScrobbleStart;
+    private Runnable mRWebdavBackup;
     private Clock mClock;
     private View mFocus1;
     private View mFocus2;
@@ -354,6 +356,7 @@ public class VideoActivity
         mR3 = this::setTraffic;
         mR4 = this::showEmpty;
         mRScrobbleStart = this::onScrobbleStart;
+        mRWebdavBackup = () -> WebDavBackup.getInstance().onBackup();
         setBackground(false);
         setRecyclerView();
         setEpisodeView();
@@ -597,7 +600,9 @@ public class VideoActivity
         mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
         mBinding.control.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
         setQualityVisible(result.getUrl().isMulti());
-        checkDanmu(result.getDanmaku());
+        if (!result.getDanmaku().isEmpty()) checkDanmu(result.getDanmaku());
+        else checkDanmu();
+        webdavBackup();
         mQualityAdapter.addAll(result);
     }
 
@@ -1423,6 +1428,7 @@ public class VideoActivity
             case Player.STATE_ENDED:
                 App.removeCallbacks(mRScrobbleStart);
                 onScrobbleStop();
+                webdavBackup();
                 checkEnded();
                 break;
         }
@@ -1871,12 +1877,18 @@ public class VideoActivity
     protected void onDestroy() {
         super.onDestroy();
         onScrobbleStop();
+        webdavBackup();
         stopSearch();
         mClock.release();
         mPlayers.release();
         Source.get().stop();
         RefreshEvent.history();
         App.removeCallbacks(mR1, mR2, mR3, mR4);
+    }
+
+    private void webdavBackup() {
+        App.removeCallbacks(mRWebdavBackup);
+        App.post(mRWebdavBackup, 1000);
     }
 
     private void onScrobble(String scrobbleType) {
@@ -1959,7 +1971,46 @@ public class VideoActivity
             mBinding.indexOffset.setActivated(indexOffset != 0);
             callTraktScrobbleOnIndexOffsetChange();
             App.post(this::callTraktScrobbleOnIndexOffsetChange, 1000);
+            checkDanmu();
         }
+    }
+
+    private void checkDanmu() {
+//        String danmaku = "";
+//        try {
+//            danmaku = App.executor().submit(this::getDanmakuFromConfig).get();
+//        } catch (Exception e) {
+//            danmaku = "";
+//            e.printStackTrace();
+//        }
+//        checkDanmu(danmaku);
+
+        App.executor().execute(() -> {
+            String danmaku = "";
+            try {
+                danmaku = getDanmakuFromConfig();
+            } catch (Exception e) {
+                danmaku = "";
+                e.printStackTrace();
+            }
+
+            // 更新界面
+            String finalDanmaku = danmaku;
+            runOnUiThread(() -> {
+                checkDanmu(finalDanmaku);
+            });
+        });
+    }
+
+    private String getDanmakuFromConfig() {
+        Site site = VodConfig.get().getSite(getKey());
+        String danmaku = "";
+        if (site.getType() == 3) {
+            danmaku = VodConfig.get().getDanmaku(mBinding.name.getText().toString(),
+                    getEpisode().getPosition() + getIndexOffset(),
+                    site);
+        }
+        return danmaku;
     }
 
     public int getIndexOffset() {

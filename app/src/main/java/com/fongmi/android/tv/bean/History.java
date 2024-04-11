@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.bean;
 
+import android.database.Cursor;
 import android.text.TextUtils;
 import android.view.View;
 
@@ -16,6 +17,7 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -365,5 +367,35 @@ public class History {
     @Override
     public String toString() {
         return App.gson().toJson(this);
+    }
+
+    public static List<History> fromCursor(Cursor cursor) {
+        List<History> histories = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+            History history = new History();
+            history.setKey(cursor.getString(cursor.getColumnIndex("key")));
+            history.setVodPic(cursor.getString(cursor.getColumnIndex("vodPic")));
+            history.setVodName(cursor.getString(cursor.getColumnIndex("vodName")));
+            history.setVodFlag(cursor.getString(cursor.getColumnIndex("vodFlag")));
+            history.setVodRemarks(cursor.getString(cursor.getColumnIndex("vodRemarks")));
+            history.setEpisodeUrl(cursor.getString(cursor.getColumnIndex("episodeUrl")));
+            history.setRevSort(cursor.getInt(cursor.getColumnIndex("revSort")) != 0);
+            history.setRevPlay(cursor.getInt(cursor.getColumnIndex("revPlay")) != 0);
+            history.setCreateTime(cursor.getLong(cursor.getColumnIndex("createTime")));
+            history.setOpening(cursor.getLong(cursor.getColumnIndex("opening")));
+            history.setEnding(cursor.getLong(cursor.getColumnIndex("ending")));
+            history.setPosition(cursor.getLong(cursor.getColumnIndex("position")));
+            history.setDuration(cursor.getLong(cursor.getColumnIndex("duration")));
+            history.setSpeed(cursor.getFloat(cursor.getColumnIndex("speed")));
+            history.setPlayer(cursor.getInt(cursor.getColumnIndex("player")));
+            history.setScale(cursor.getInt(cursor.getColumnIndex("scale")));
+            history.setCid(cursor.getInt(cursor.getColumnIndex("cid")));
+            history.setIndexOffset(cursor.getInt(cursor.getColumnIndex("indexOffset")));
+
+            histories.add(history);
+        }
+
+        return histories;
     }
 }

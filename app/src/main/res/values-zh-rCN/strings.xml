@@ -167,6 +167,8 @@
     <string name="index_offset">集数偏移</string>
     <string name="debug_helper">调试</string>
     <string name="real_title">标题订正</string>
+    <string name="setting_webdav_backup_switch">WevDav 备份</string>
+    <string name="setting_webdav_backup_url">WevDav 网址</string>
 
     <string-array name="select_decode">
         <item>软解</item>

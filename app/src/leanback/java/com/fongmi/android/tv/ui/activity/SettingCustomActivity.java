@@ -1,17 +1,22 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.view.View;
+import android.widget.EditText;
 
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.api.WebDavBackup;
 import com.fongmi.android.tv.databinding.ActivitySettingCustomBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Locale;
 
@@ -55,6 +60,8 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.smallWindowBackKeyText.setText((smallWindowBackKey = ResUtil.getStringArray(R.array.select_small_window_back_key))[Setting.getSmallWindowBackKey()]);
         mBinding.homeMenuKeyText.setText((homeMenuKey = ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
+        mBinding.webDavBackupSwitchText.setText(getSwitch(Setting.isWebDavBackupSwitch()));
+        mBinding.webDavBackupUrlText.setText(Setting.getWebDavBackupUrl());
     }
 
     @Override
@@ -74,6 +81,10 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.smallWindowBackKey.setOnClickListener(this::setSmallWindowBackKey);
         mBinding.homeMenuKey.setOnClickListener(this::setHomeMenuKey);
         mBinding.aggregatedSearch.setOnClickListener(this::setAggregatedSearch);
+        mBinding.webDavBackupSwitch.setOnClickListener(this::setWebDavBackupSwitch);
+        mBinding.webDavBackupSwitch.setOnLongClickListener(this::longClickWebDavBackupSwitch);
+        mBinding.webDavBackupUrl.setOnClickListener(this::setWebDavBackupUrl);
+        mBinding.webDavBackupUrl.setOnLongClickListener(this::webDavRestore);
     }
 
     private void setQuality(View view) {
@@ -166,5 +177,64 @@ public class SettingCustomActivity extends BaseActivity {
         Setting.putAggregatedSearch(!Setting.isAggregatedSearch());
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
     }
+
+    private void setWebDavBackupSwitch(View view) {
+        Setting.putWebDavBackupSwitch(!Setting.isWebDavBackupSwitch());
+        mBinding.webDavBackupSwitchText.setText(getSwitch(Setting.isWebDavBackupSwitch()));
+    }
+
+    private void setWebDavBackupUrl(View view) {
+        // 创建一个输入框
+        final EditText input = new EditText(this);
+        input.setText(Setting.getWebDavBackupUrl());
+
+        // 创建一个对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("WebDAV 备份 URL");
+        builder.setMessage("请输入 WebDAV 备份 URL:");
+        builder.setView(input);
+
+        // 设置确认按钮
+        builder.setPositiveButton("确认", (dialog, which) -> {
+            // 获取输入框中的值
+            String url = input.getText().toString();
+
+            // 保存 URL 到 Preferences
+            Setting.putWebDavBackupUrl(url);
+            mBinding.webDavBackupUrlText.setText(Setting.getWebDavBackupUrl());
+            WebDavBackup.getInstance().init();
+        });
+
+        // 设置取消按钮
+        builder.setNegativeButton("取消", null);
+
+        // 显示对话框
+        builder.show();
+    }
+
+    private boolean webDavRestore(View view) {
+        WebDavBackup.getInstance().onRestore();
+        return true;
+    }
+
+    private boolean longClickWebDavBackupSwitch(View view) {
+        new MaterialAlertDialogBuilder(this)
+                .setMessage("选择操作")
+                .setNegativeButton("备份", (dialog, which) -> {
+                    WebDavBackup.getInstance().onBackup();
+                    dialog.dismiss();
+                })
+                .setPositiveButton("恢复全部（无prefer）", (dialog, which) -> {
+                    WebDavBackup.getInstance().onRestoreWithoutPrefer();
+                    dialog.dismiss();
+                })
+                .setNeutralButton("恢复历史（合并）", (dialog, which) -> {
+                    WebDavBackup.getInstance().onRestoreHistory();
+                    dialog.dismiss();
+                })
+                .show();
+        return true;
+    }
+
 
 }

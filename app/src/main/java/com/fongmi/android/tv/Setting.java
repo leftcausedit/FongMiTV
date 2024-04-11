@@ -437,4 +437,19 @@ public class Setting {
         Prefers.put("aggregated_search", search);
     }
 
+    public static boolean isWebDavBackupSwitch() {
+        return Prefers.getBoolean("webdav_backup_switch", true);
+    }
+
+    public static void putWebDavBackupSwitch(boolean switch_) {
+        Prefers.put("webdav_backup_switch", switch_);
+    }
+
+    public static String getWebDavBackupUrl() {
+        return Prefers.getString("webdav_backup_url", "https://user:pass@host:port/path");
+    }
+
+    public static void putWebDavBackupUrl(String url) {
+        Prefers.put("webdav_backup_url", url);
+    }
 }

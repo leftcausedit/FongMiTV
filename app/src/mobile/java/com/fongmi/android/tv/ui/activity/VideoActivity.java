@@ -53,6 +53,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.api.WebDavBackup;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.Trakt;
@@ -195,6 +196,7 @@ public class VideoActivity extends BaseActivity
     private Runnable mRShowProgress;
     private Runnable mRHideVolume;
     private Runnable mRFastSeek;
+    private Runnable mRWebdavBackup;
     private Clock mClock;
     private PiP mPiP;
     private String mYear;
@@ -386,6 +388,7 @@ public class VideoActivity extends BaseActivity
         mRShowProgress = this::showProgressImmediateWithoutCondition;
         mRHideVolume = this::onVolumeEnd;
         mRFastSeek = this::fastSeek;
+        mRWebdavBackup = () -> WebDavBackup.getInstance().onBackup();
         mPiP = new PiP();
         setForeground(true);
         setActivityBackground();
@@ -813,6 +816,7 @@ public class VideoActivity extends BaseActivity
         mBinding.swipeLayout.setRefreshing(false);
         if (!result.getDanmaku().isEmpty()) checkDanmu(result.getDanmaku());
         else checkDanmu();
+        webdavBackup();
         mQualityAdapter.addAll(result);
     }
 
@@ -1573,6 +1577,7 @@ public class VideoActivity extends BaseActivity
             case Player.STATE_ENDED:
                 App.removeCallbacks(mRScrobbleStart); // make sure more than 1 sec between scrobbleStop and last call;
                 onScrobbleStop();
+                webdavBackup();
                 checkEnded();
                 break;
         }
@@ -2113,6 +2118,7 @@ public class VideoActivity extends BaseActivity
     protected void onDestroy() {
         super.onDestroy();
         onScrobbleStop();
+        webdavBackup();
         stopSearch();
         mClock.release();
         mPlayers.release();
@@ -2123,6 +2129,11 @@ public class VideoActivity extends BaseActivity
         mViewModel.result.removeObserver(mObserveDetail);
         mViewModel.player.removeObserver(mObservePlayer);
         mViewModel.search.removeObserver(mObserveSearch);
+    }
+
+    private void webdavBackup() {
+        App.removeCallbacks(mRWebdavBackup);
+        App.post(mRWebdavBackup, 1000);
     }
 
     private void onScrobble(String scrobbleType) {

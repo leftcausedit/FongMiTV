@@ -1,12 +1,14 @@
 package com.fongmi.android.tv.db;
 
 import android.content.Context;
+import android.database.Cursor;
 
 import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
+import androidx.sqlite.db.SimpleSQLiteQuery;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.fongmi.android.tv.App;
@@ -26,6 +28,7 @@ import com.fongmi.android.tv.db.dao.KeepDao;
 import com.fongmi.android.tv.db.dao.LiveDao;
 import com.fongmi.android.tv.db.dao.SiteDao;
 import com.fongmi.android.tv.db.dao.TrackDao;
+import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Path;
@@ -99,6 +102,21 @@ public abstract class AppDatabase extends RoomDatabase {
             if (shm.exists()) Path.copy(shm, App.get().getDatabasePath(shm.getName()).getAbsoluteFile());
 //            if (pref.exists()) Prefers.restore(pref);
             App.post(callback::success);
+        });
+    }
+
+    public static void restoreHistory(com.fongmi.android.tv.impl.Callback callback) {
+        App.execute(() -> {
+            AppDatabase appDb = AppDatabase.get();
+            File db = new File(Path.tv(), NAME);
+            AppDatabase externalDb =
+                    Room.databaseBuilder(
+                            App.get().getApplicationContext(), AppDatabase.class, db.getAbsolutePath()
+                    ).build();
+            appDb.getHistoryDao().insertAndKeepNewest(externalDb.getHistoryDao().findAll());
+//            appDb.close();
+            externalDb.close();
+            RefreshEvent.history();
         });
     }
 
